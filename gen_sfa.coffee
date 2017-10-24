@@ -1,6 +1,7 @@
 #!/usr/bin/env iced
 ### !pragma coverage-skip-block ###
 require 'fy'
+fs = require 'fs'
 
 mod = require('meta_block_gen')()
 
@@ -21,7 +22,6 @@ main.inject ()->
   col.gen 'tok_un_op'
 
 main.compile()
-fs = require 'fs'
 fs.writeFileSync "tok.gen.coffee", main.hash.cont
 
 # ###################################################################################################
@@ -38,5 +38,4 @@ main.inject ()->
   col.gen 'gram_stmt'
 
 main.compile()
-fs = require 'fs'
 fs.writeFileSync "gram.gen.coffee", main.hash.cont

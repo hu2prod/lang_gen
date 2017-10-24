@@ -12,9 +12,13 @@ module.exports = (col)->
         throw new Error "Can't compile gram_main. Must be injected"
       gram_list = [
         # не определился куда...
-        'q("const", "#num_const")                          .mx("ult=deep ti=pass")'
-        'q("rvalue","#const")                              .mx("priority=#{base_priority} ult=deep  ti=pass")'
-        ''
+        '''
+        q("const", "#num_const")                          .mx("ult=deep ti=pass")
+        q("rvalue","#const")                              .mx("priority=#{base_priority} ult=deep  ti=pass")
+        q("stmt",  "#rvalue")                             .mx("ult=deep ti=pass")
+        q("rvalue", "#lvalue")                            .mx("priority=#{base_priority} tail_space=$1.tail_space ult=deep  ti=pass")
+        
+        '''
       ]
       for child in @child_list
         child.compile()
@@ -75,7 +79,7 @@ module.exports = (col)->
     ret.compile_fn = ()->
       ret.gram_list = [
         '''
-        q("lvalue", "#identifier")                        .mx("priority=#{base_priority} tail_space=$1.tail_space ult=value ti=id")
+        q("lvalue", "#tok_identifier")                    .mx("priority=#{base_priority} tail_space=$1.tail_space ult=value ti=id")
         
         '''
       ]
@@ -233,9 +237,9 @@ module.exports = (col)->
         if ret.hash.l_assoc_hash[op]
           assoc_aux = " left_assoc=1"
         
-        q  = """q("pre_op", #{str_op})"""#"
+        q  = """q("bin_op", #{str_op})"""#"
         mx = """.mx("priority=#{priority}#{assoc_aux}")"""#"
-        s  = """.strict("$1.hash_key==binary_operator")"""#"
+        s  = """.strict("$1.hash_key==tok_bin_op")"""#"
         ret.gram_list.push "#{q.ljust 50}#{mx.ljust 50}#{s}"
       
       ret.gram_list.push """
@@ -292,7 +296,7 @@ module.exports = (col)->
         
         q  = """q("pre_op", #{str_op})"""#"
         mx = """.mx("priority=#{priority}")"""#"
-        s  = """.strict("$1.hash_key==unary_operator#{aux_tail}")"""#"
+        s  = """.strict("$1.hash_key==tok_un_op#{aux_tail}")"""#"
         ret.gram_list.push "#{q.ljust 50}#{mx.ljust 50}#{s}"
       
       ret.gram_list.push """
@@ -327,7 +331,7 @@ module.exports = (col)->
         
         q  = """q("post_op", #{str_op})"""#"
         mx = """.mx("priority=#{priority}")"""#"
-        s  = """.strict("$1.hash_key==unary_operator")"""#"
+        s  = """.strict("$1.hash_key==tok_un_op")"""#"
         ret.gram_list.push "#{q.ljust 50}#{mx.ljust 50}#{s}"
       
       ret.gram_list.push """
