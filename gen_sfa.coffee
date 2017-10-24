@@ -21,6 +21,10 @@ main.inject ()->
   col.gen 'tok_bin_op'
   col.gen 'tok_un_op'
 
+main.hash.dedent_fix    = false
+main.hash.remove_end_eol= false
+main.hash.empty_fix     = false
+
 main.compile()
 fs.writeFileSync "tok.gen.coffee", main.hash.cont
 

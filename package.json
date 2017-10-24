@@ -5,9 +5,9 @@
   "main": "lib/index.js",
   "scripts": {
     "install": "iced -o lib -c src",
-    "test": "mocha --recursive --compilers coffee:iced-coffee-script/register --require iced-coffee-coverage/register-istanbul test && istanbul report && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-    "test-simple": "mocha --recursive --compilers coffee:iced-coffee-script/register --require iced-coffee-coverage/register-istanbul test && istanbul report",
-    "test-watch": "mocha --compilers coffee:iced-coffee-script/register --watch --full-trace --watch-extensions=js,coffee"
+    "test": "rm *.gen.coffee && mocha --recursive --compilers coffee:iced-coffee-script/register --require iced-coffee-coverage/register-istanbul test && istanbul report && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    "test-simple": "rm *.gen.coffee && mocha --recursive --compilers coffee:iced-coffee-script/register --require iced-coffee-coverage/register-istanbul test && istanbul report",
+    "test-watch": "rm *.gen.coffee && mocha --compilers coffee:iced-coffee-script/register --watch --full-trace --watch-extensions=js,coffee"
   },
   "repository": {
     "type": "git",

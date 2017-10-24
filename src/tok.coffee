@@ -10,11 +10,14 @@ module.exports = (col)->
     ret.compile_fn = ()->
       if !@hash._injected
         throw new Error "Can't compile tok_main. Must be injected"
+      spec_list = []
       parser_list = []
       for child in @child_list
         child.compile()
         if child.parser_list
           parser_list.append child.parser_list
+        if child.spec_list
+          spec_list.append child.spec_list
       
       for v,k in parser_list
         parser_list[k] = """
@@ -49,12 +52,14 @@ module.exports = (col)->
         {Token_parser, Tokenizer, Node} = require 'gram2'
         module = @
         tokenizer = new Tokenizer
+        #{join_list spec_list}
         #{join_list parser_list}
         
         
         @_tokenizer = tokenizer
 
         @_tokenize = (str, opt={})->
+          last_space = 0 # HARDCODE
           #{join_list pre_jl, '  '}
           res = tokenizer.go str
           #{join_list post_jl, '  '}
@@ -71,6 +76,37 @@ module.exports = (col)->
     ret
   
   bp = col.autogen 'tok_space_scope', /^tok_space_scope$/, (ret)->
+    ret.spec_list = [
+      '''
+      last_space = 0
+      tokenizer = new Tokenizer
+      tokenizer.parser_list.push (new Token_parser 'Xdent', /^\n/, (_this, ret_value, q)->
+        _this.text = _this.text.substr 1 # \n
+        tail_space_len = /^[ \t]*/.exec(_this.text)[0].length
+        _this.text = _this.text.substr tail_space_len
+        if tail_space_len != last_space
+          while last_space < tail_space_len
+            node = new Node
+            node.mx_hash.hash_key = 'indent'
+            ret_value.push [node]
+            last_space += 2
+          
+          while last_space > tail_space_len
+            indent_change_present = true
+            node = new Node
+            node.mx_hash.hash_key = 'dedent'
+            ret_value.push [node]
+            last_space -= 2
+        else
+          return if _this.ret_access.last()?[0].mx_hash.hash_key == 'eol' # do not duplicate
+          node = new Node
+          node.mx_hash.hash_key = 'eol'
+          ret_value.push [node]
+          
+        last_space = tail_space_len
+      )
+      '''#'
+    ]
     ret
   bp = col.autogen 'tok_id', /^tok_id$/, (ret)->
     ret.compile_fn = ()->

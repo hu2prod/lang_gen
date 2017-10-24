@@ -1,2 +1,2 @@
-# event_mixin
-portable event emitter analog
+# lang_gen
+SFA = simple frontend for ast4gen
