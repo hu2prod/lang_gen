@@ -10,6 +10,7 @@ module.exports = (col)->
     ret.compile_fn = ()->
       if !@hash._injected
         throw new Error "Can't compile gram_main. Must be injected"
+      
       gram_list = [
         # не определился куда...
         '''
@@ -20,6 +21,20 @@ module.exports = (col)->
         
         '''
       ]
+      # require
+      present_module_list = []
+      for child in @child_list
+        present_module_list.push child.name
+      require_module_list = []
+      for child in @child_list
+        continue if !child.hash.require_list
+        for v in child.hash.require_list
+          require_module_list.push v if !present_module_list.has v
+      
+      for v in require_module_list
+        @inject ()->
+          col.gen v
+        
       for child in @child_list
         child.compile()
         if child.gram_list
@@ -79,7 +94,7 @@ module.exports = (col)->
     ret.compile_fn = ()->
       ret.gram_list = [
         '''
-        q("lvalue", "#tok_identifier")                    .mx("priority=#{base_priority} tail_space=$1.tail_space ult=value ti=id")
+        q("lvalue", "#tok_identifier")                    .mx("priority=#{base_priority} tail_space=$1.tail_space ult=id ti=id")
         
         '''
       ]
@@ -87,22 +102,22 @@ module.exports = (col)->
   
   bp = col.autogen 'gram_int_family', /^gram_int_family$/, (ret)->
     ret.hash.dec = true
-    ret.hash.oct_unsafe = true # 0777
+    # ret.hash.oct_unsafe = true # 0777
     ret.hash.oct = true
     ret.hash.hex = true
     ret.hash.bin = true
     ret.compile_fn = ()->
       ret.gram_list =[]
       if ret.hash.dec
-        ret.gram_list.push 'q("num_const", "#decimal_literal")                      .mx("ult=value ti=const type=int")'
+        ret.gram_list.push 'q("num_const", "#decimal_literal")                .mx("ult=const ti=const type=int")'
       # if ret.hash.oct_unsafe
-        # ret.gram_list.push 'q("num_const", "#octal_literal")                        .mx("ult=value ti=const type=int")'
+        # ret.gram_list.push 'q("num_const", "#octal_literal")                  .mx("ult=const ti=const type=int")'
       if ret.hash.oct
-        ret.gram_list.push 'q("num_const", "#octal_literal")                        .mx("ult=value ti=const type=int")'
+        ret.gram_list.push 'q("num_const", "#octal_literal")                  .mx("ult=const ti=const type=int")'
       if ret.hash.hex
-        ret.gram_list.push 'q("num_const", "#hexadecimal_literal")                  .mx("ult=value ti=const type=int")'
+        ret.gram_list.push 'q("num_const", "#hexadecimal_literal")            .mx("ult=const ti=const type=int")'
       if ret.hash.bin
-        ret.gram_list.push 'q("num_const", "#binary_literal")                       .mx("ult=value ti=const type=int")'
+        ret.gram_list.push 'q("num_const", "#binary_literal")                 .mx("ult=const ti=const type=int")'
       ret.gram_list.push ''
       return
     ret
@@ -110,7 +125,7 @@ module.exports = (col)->
   bp = col.autogen 'gram_float_family', /^gram_float_family$/, (ret)->
     ret.compile_fn = ()->
       ret.gram_list = [
-        'q("num_const", "#float_literal")                        .mx("ult=value ti=const type=float")'
+        'q("num_const", "#float_literal")                        .mx("ult=const ti=const type=float")'
         ''
       ]
       return
@@ -326,7 +341,7 @@ module.exports = (col)->
       
       ret.gram_list = []
       for op in op_list
-        str_op = JSON.stringify(gram_escape op).ljust 15
+        str_op = JSON.stringify(gram_escape op)
         priority = ret.hash.priority_hash[op] or ret.hash.default_priority
         
         q  = """q("post_op", #{str_op})"""#"
@@ -353,8 +368,8 @@ module.exports = (col)->
     ret.compile_fn = ()->
       ret.gram_list = [
         '''
-        q('stmt_plus', '#stmt')                           .mx("priority=#{base_priority} ult=deep ti=pass")
-        q('stmt_plus', '#stmt_plus #eol #stmt')           .mx("priority=#{base_priority} ult=deep ti=stmt_plus_last eol_pass=1")
+        q('stmt_plus', '#stmt')                           .mx("priority=#{base_priority} ult=deep_scope ti=pass")
+        q('stmt_plus', '#stmt_plus #eol #stmt')           .mx("priority=#{base_priority} ult=deep_scope ti=stmt_plus_last eol_pass=1")
         
         '''#'
       ]
@@ -385,6 +400,50 @@ module.exports = (col)->
     ret
   
   bp = col.autogen 'gram_class', /^gram_class$/, (ret)->
+    ret
+  
+  bp = col.autogen 'gram_type', /^gram_type$/, (ret)->
+    ret.hash.nest = true
+    ret.hash.field = true
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      
+      aux_nest = ""
+      if ret.hash.nest
+        aux_nest = " #type_nest?"
+        ret.gram_list.push '''
+          q('type_list', '#type')
+          q('type_list', '#type , #type_list')
+          q('type_nest', '< #type_list >')
+        '''#'
+        
+      aux_field = ""
+      if ret.hash.field
+        aux_field = " #type_field?"
+        ret.gram_list.push '''
+          q('type_field_kv', '#tok_identifier : #type')
+          q('type_field_kv_list', '#type_field_kv')
+          q('type_field_kv_list', '#type_field_kv , #type_field_kv_list')
+          q('type_field', '{ #type_field_kv_list }')
+        '''#'
+      str = "q('type', '#tok_identifier#{aux_nest}#{aux_field}')"
+      ret.gram_list.push """
+        #{str.ljust 50}.mx("ult=type_name ti=pass")
+        
+        """#"
+      
+      return
+    ret
+  
+  bp = col.autogen 'gram_var_decl', /^gram_var_decl$/, (ret)->
+    ret.hash.require_list = ['gram_type']
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      ret.gram_list.push '''
+        q('stmt', 'var #tok_identifier : #type')          .mx("ult=var_decl ti=var_decl")
+        
+      '''#'
+      return
     ret
   
   # todo string (single/double)

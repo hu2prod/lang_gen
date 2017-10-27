@@ -5,9 +5,9 @@
   "main": "lib/index.js",
   "scripts": {
     "install": "iced -o lib -c src",
-    "test": "rm *.gen.coffee && mocha --recursive --compilers coffee:iced-coffee-script/register --require iced-coffee-coverage/register-istanbul test && istanbul report && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-    "test-simple": "rm *.gen.coffee && mocha --recursive --compilers coffee:iced-coffee-script/register --require iced-coffee-coverage/register-istanbul test && istanbul report",
-    "test-watch": "rm *.gen.coffee && mocha --compilers coffee:iced-coffee-script/register --watch --full-trace --watch-extensions=js,coffee"
+    "test": "rm -f *.gen.coffee && mocha --recursive --compilers coffee:iced-coffee-script/register --require iced-coffee-coverage/register-istanbul test && istanbul report && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    "test-simple": "rm -f *.gen.coffee && mocha --recursive --compilers coffee:iced-coffee-script/register --require iced-coffee-coverage/register-istanbul test && istanbul report",
+    "test-watch": "rm -f *.gen.coffee && mocha --compilers coffee:iced-coffee-script/register --watch --full-trace --watch-extensions=js,coffee"
   },
   "repository": {
     "type": "git",
@@ -20,14 +20,18 @@
   },
   "homepage": "https://github.com/hu2prod/lang_gen#readme",
   "devDependencies": {
+    "ast2coffee": "github:hu2prod/ast2coffee",
+    "ast4gen": "github:hu2prod/ast4gen",
     "coveralls": "^2.11.16",
     "iced-coffee-coverage": "^1.0.21",
     "iced-coffee-script": "^108.0.11",
     "istanbul": "^0.4.5",
     "mocha": "^3.2.0",
-    "shelljs": "^0.7.8"
+    "shelljs": "^0.7.8",
+    "type": "github:hu2prod/type"
   },
   "dependencies": {
+    "ast4gen": "github:hu2prod/ast4gen",
     "gram2": "github:hu2prod/gram2",
     "meta_block_gen": "github:hu2prod/meta_block_gen"
   }

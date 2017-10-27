@@ -2,9 +2,6 @@ assert = require 'assert'
 require 'shelljs/global'
 
 describe 'index section', ()->
-  it 'test init', ()->
-    rm '*gen.coffee'
-  
   _tokenize = null
   _parse = null
   tokenize = null

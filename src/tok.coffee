@@ -10,6 +10,20 @@ module.exports = (col)->
     ret.compile_fn = ()->
       if !@hash._injected
         throw new Error "Can't compile tok_main. Must be injected"
+      # require
+      present_module_list = []
+      for child in @child_list
+        present_module_list.push child.name
+      require_module_list = []
+      for child in @child_list
+        continue if !child.hash.require_list
+        for v in child.hash.require_list
+          require_module_list.push v if !present_module_list.has v
+      
+      for v in require_module_list
+        @inject ()->
+          col.gen v
+      
       spec_list = []
       parser_list = []
       for child in @child_list
@@ -80,7 +94,7 @@ module.exports = (col)->
       '''
       last_space = 0
       tokenizer = new Tokenizer
-      tokenizer.parser_list.push (new Token_parser 'Xdent', /^\n/, (_this, ret_value, q)->
+      tokenizer.parser_list.push (new Token_parser 'Xdent', /^\\n/, (_this, ret_value, q)->
         _this.text = _this.text.substr 1 # \n
         tail_space_len = /^[ \t]*/.exec(_this.text)[0].length
         _this.text = _this.text.substr tail_space_len
@@ -123,6 +137,26 @@ module.exports = (col)->
     ret.hash.oct = true
     ret.hash.hex = true
     ret.hash.bin = true
+    
+    ret.compile_fn = ()->
+      aux_sign = ""
+      if ret.hash.sign
+        aux_sign = "[-+]?"
+      ret.parser_list = []
+      if ret.hash.dec
+        if ret.hash.oct_unsafe
+          ret.parser_list.push "new Token_parser 'decimal_literal', /^#{aux_sign}(0|[1-9][0-9]*)/"
+        else
+          ret.parser_list.push "new Token_parser 'decimal_literal', /^#{aux_sign}[0-9]+/"
+      if ret.hash.oct
+        ret.parser_list.push "new Token_parser 'octal_literal', /^0o[0-7]+/i"
+      if ret.hash.oct_unsafe
+        ret.parser_list.push "new Token_parser 'octal_literal', /^0[0-7]+/"
+      if ret.hash.hex
+        ret.parser_list.push "new Token_parser 'hexadecimal_literal', /^0x[0-9a-f]+/i"
+      if ret.hash.bin
+        ret.parser_list.push "new Token_parser 'binary_literal', /^0b[01]+/i"
+      return
     ret
   
   bp = col.autogen 'tok_float_family', /^tok_float_family$/, (ret)->
@@ -166,7 +200,7 @@ module.exports = (col)->
       op_list.append "** // %%"       .split /\s+/g if ret.hash.arith_ext
       op_list.append "<< >> >>>"      .split /\s+/g if ret.hash.shift
       op_list.append "&& ||"          .split /\s+/g if ret.hash.logic
-      op_list.append "::"             .split /\s+/g if ret.hash.logic_ext
+      op_list.append "^^"             .split /\s+/g if ret.hash.logic_ext
       op_list.append "and or xor"     .split /\s+/g if ret.hash.logic_text
       op_list.append "& | ^"          .split /\s+/g if ret.hash.bit
       op_list.append "== != < <= > >=".split /\s+/g if ret.hash.cmp
@@ -271,6 +305,7 @@ module.exports = (col)->
   
   # дает {} : и string
   bp = col.autogen 'tok_hash', /^tok_hash$/, (ret)->
+    ret.hash.require_list = ['tok_pair_delimiter']
     ret.hash.key_int          = true
     ret.hash.key_float        = true
     ret.hash.key_string       = true
@@ -288,6 +323,18 @@ module.exports = (col)->
     ret
   
   bp = col.autogen 'tok_class', /^tok_class$/, (ret)->
+    ret
+  
+  bp = col.autogen 'tok_var_decl', /^tok_var_decl$/, (ret)->
+    ret.hash.require_list = ['tok_pair_delimiter']
+    ret
+  
+  bp = col.autogen 'tok_pair_delimiter', /^tok_pair_delimiter$/, (ret)->
+    ret.compile_fn = ()->
+      ret.parser_list = [
+        "new Token_parser 'tok_pair_delimiter', /^:/"
+      ]
+      return
     ret
   
   # todo string (single/double)

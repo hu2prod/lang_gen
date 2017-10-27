@@ -16,10 +16,12 @@ require('./src/gram')(col)
 main = col.gen 'tok_main'
 
 main.inject ()->
-  # col.gen 'tok_space_scope'
+  col.gen 'tok_space_scope'
   col.gen 'tok_id'
   col.gen 'tok_bin_op'
   col.gen 'tok_un_op'
+  col.gen 'tok_int_family'
+  col.gen 'tok_var_decl'
 
 main.hash.dedent_fix    = false
 main.hash.remove_end_eol= false
@@ -40,6 +42,8 @@ main.inject ()->
   col.gen 'gram_pre_op'
   col.gen 'gram_post_op'
   col.gen 'gram_stmt'
+  col.gen 'gram_int_family'
+  col.gen 'gram_var_decl'
 
 main.compile()
 fs.writeFileSync "gram.gen.coffee", main.hash.cont
