@@ -22,9 +22,10 @@ main.inject ()->
   col.gen 'tok_un_op'
   col.gen 'tok_int_family'
   col.gen 'tok_var_decl'
+  col.gen 'tok_fn_decl'
 
-main.hash.dedent_fix    = false
-main.hash.remove_end_eol= false
+main.hash.dedent_fix    = true
+main.hash.remove_end_eol= true
 main.hash.empty_fix     = false
 
 main.compile()
@@ -44,6 +45,8 @@ main.inject ()->
   col.gen 'gram_stmt'
   col.gen 'gram_int_family'
   col.gen 'gram_var_decl'
+  
+  col.gen 'gram_fn_decl'
 
 main.compile()
 fs.writeFileSync "gram.gen.coffee", main.hash.cont

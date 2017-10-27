@@ -13,12 +13,12 @@ module.exports = (col)->
       # require
       present_module_list = []
       for child in @child_list
-        present_module_list.push child.name
+        present_module_list.upush child.name
       require_module_list = []
       for child in @child_list
         continue if !child.hash.require_list
         for v in child.hash.require_list
-          require_module_list.push v if !present_module_list.has v
+          require_module_list.upush v if !present_module_list.has v
       
       for v in require_module_list
         @inject ()->
@@ -46,7 +46,7 @@ module.exports = (col)->
           """
       if ret.hash.dedent_fix
         pre_jl.push '''
-          str += "\n" # dedent fix
+          str += "\\n" # dedent fix
           '''
       if ret.hash.remove_end_eol
         post_jl.push """
@@ -166,6 +166,24 @@ module.exports = (col)->
     ret
   
   bp = col.autogen 'tok_at', /^tok_at$/, (ret)->
+    ret.compile_fn = ()->
+      ret.parser_list = []
+      ret.parser_list.push "new Token_parser 'tok_at', /^@/"
+      return
+    ret
+  
+  bp = col.autogen 'tok_comma', /^tok_comma$/, (ret)->
+    ret.compile_fn = ()->
+      ret.parser_list = []
+      ret.parser_list.push "new Token_parser 'tok_comma', /^,/"
+      return
+    ret
+  
+  bp = col.autogen 'tok_bracket_round', /^tok_bracket_round$/, (ret)->
+    ret.compile_fn = ()->
+      ret.parser_list = []
+      ret.parser_list.push "new Token_parser 'tok_bracket_round', /^[\(\)]/"
+      return
     ret
   
   bp = col.autogen 'tok_bin_op', /^tok_bin_op$/, (ret)->
@@ -327,6 +345,14 @@ module.exports = (col)->
   
   bp = col.autogen 'tok_var_decl', /^tok_var_decl$/, (ret)->
     ret.hash.require_list = ['tok_pair_delimiter']
+    ret
+  
+  bp = col.autogen 'tok_fn_decl', /^tok_fn_decl$/, (ret)->
+    ret.hash.require_list = ['tok_pair_delimiter', 'tok_bracket_round', 'tok_comma']
+    ret.compile_fn = ()->
+      ret.parser_list = []
+      ret.parser_list.push "new Token_parser 'tok_fn_arrow', /^(->|=>)/"
+      return
     ret
   
   bp = col.autogen 'tok_pair_delimiter', /^tok_pair_delimiter$/, (ret)->

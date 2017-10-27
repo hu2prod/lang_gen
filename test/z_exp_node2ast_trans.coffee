@@ -19,16 +19,33 @@ describe 'exp_node2ast_trans section', ()->
     {_tokenize, tokenize} = require('../tok.gen.coffee')
     {_parse, parse}    = require('../gram.gen.coffee')
   
-  it '1', ()->
-    assert.equal run("1"), "1"
+  describe 'simple', ()->
+    it '1', ()->
+      assert.equal run("1"), "1"
+    
+    it 'var a : int', ()->
+      assert.equal run("var a:int"), ""
+    
+    it 'var a : int;a', ()->
+      assert.equal run("var a:int\na"), "a"
+    
+    # not properly validated
+    describe 'throws', ()->
+      it 'a', ()->
+        assert.throws ()-> run("a")
   
-  it 'var a : int', ()->
-    assert.equal run("var a:int"), ""
-  
-  it 'var a : int;a', ()->
-    assert.equal run("var a:int\na"), "a"
-  
-  # not properly validated
-  describe 'throws', ()->
-    it 'a', ()->
-      assert.throws ()-> run("a")
+  describe 'fn_decl', ()->
+    it 'a():void->', ()->
+      assert.equal run("a():void->"), "a = ()->\n  "
+    
+    it 'a(b:int):void->', ()->
+      assert.equal run("a(b:int):void->"), "a = (b)->\n  "
+    
+    it 'a(b:int, c:float):void->', ()->
+      assert.equal run("a(b: int, c: float):void->"), "a = (b, c)->\n  "
+    
+    it 'a(b:int):int->b', ()->
+      assert.equal run("a(b: int):int->b"), "a = (b)->\n  b"
+    
+    it 'a(b:int):int->\n  b', ()->
+      assert.equal run("a(b: int):int->\n  b"), "a = (b)->\n  b"

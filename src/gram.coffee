@@ -24,12 +24,12 @@ module.exports = (col)->
       # require
       present_module_list = []
       for child in @child_list
-        present_module_list.push child.name
+        present_module_list.upush child.name
       require_module_list = []
       for child in @child_list
         continue if !child.hash.require_list
         for v in child.hash.require_list
-          require_module_list.push v if !present_module_list.has v
+          require_module_list.upush v if !present_module_list.has v
       
       for v in require_module_list
         @inject ()->
@@ -376,9 +376,24 @@ module.exports = (col)->
       return
     ret
   
-  bp = col.autogen 'gram_fn', /^gram_fn$/, (ret)->
-    ret.hash.arrow = true
-    ret.hash.fat_arrow = true
+  bp = col.autogen 'gram_fn_decl', /^gram_fn_decl$/, (ret)->
+    # ret.hash.arrow = true
+    ret.hash.fat_arrow = true # LATER
+    ret.hash.require_list = ['gram_type']
+    
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      # TODO default value
+      # q('rvalue', '( #fn_decl_arg_list? ) : #type ->').mx("ult=closure")
+      ret.gram_list.push '''
+        q('fn_decl_arg', '#tok_identifier : #type')
+        q('fn_decl_arg_list', '#fn_decl_arg')
+        q('fn_decl_arg_list', '#fn_decl_arg , #fn_decl_arg_list')
+        q('stmt', '#tok_identifier ( #fn_decl_arg_list? ) : #type -> #block?').mx('ult=fn_decl')
+        q('stmt', '#tok_identifier ( #fn_decl_arg_list? ) : #type -> #rvalue').mx('ult=fn_decl')
+      '''#'
+      
+      return
     ret
   
   # дает {} : и string

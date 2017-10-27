@@ -1,5 +1,4 @@
 Type = require 'type'
-type = (t)->new Type t
 ast = require 'ast4gen'
 
 pre_op_map =
@@ -65,6 +64,10 @@ bin_op_map =
   '<=' : 'LTE'
   
   # INDEX_ACCESS : true # a[b] как бинарный оператор
+seek_token = (name, t)->
+  for v in t.value_array
+    return v if v.mx_hash.hash_key == name
+  null
 
 @_gen = gen = (root)->
   switch root.mx_hash.ult
@@ -79,10 +82,13 @@ bin_op_map =
           ret.list.push loc
       ret
     
+    when "block"
+      gen root.value_array[1]
+    
     when "var_decl"
       ret = new ast.Var_decl
       ret.name = root.value_array[1].value
-      ret.type = type root.value_array[3].value_view.replace(/\s+/g, '')
+      ret.type = new Type root.value_array[3].value_view.replace(/\s+/g, '')
       ret
     
     when "deep"
@@ -96,7 +102,7 @@ bin_op_map =
     when "const"
       ret = new ast.Const
       ret.val = root.value_view
-      ret.type = type root.mx_hash.type
+      ret.type = new Type root.mx_hash.type
       ret
     
     when "bin_op"
@@ -122,6 +128,38 @@ bin_op_map =
       if !ret.op
         throw new Error "unknown post_op=#{op}"
       ret.a = gen root.value_array[0]
+      ret
+    
+    when "fn_decl"
+      ret = new ast.Fn_decl
+      if name = seek_token 'tok_identifier', root
+        ret.name = name.value
+      ret.type = new Type "function"
+      
+      arg_list = []
+      if fn_decl_arg_list = seek_token 'fn_decl_arg_list', root
+        walk = (t)->
+          arg = t.value_array[0]
+          arg_list.push {
+            name : arg.value_array[0].value
+            type : new Type arg.value_array[2].value_view.replace(/\s+/g, '')
+          }
+          
+          if t.value_array.length == 3
+            walk t.value_array[2]
+          return
+        walk fn_decl_arg_list
+      ret.type.nest_list.push new Type seek_token('type', root).value_view.replace(/\s+/g, '')
+      for arg in arg_list
+        ret.type.nest_list.push arg.type
+        ret.arg_name_list.push arg.name
+      
+      scope = null
+      scope ?= seek_token 'block', root
+      scope ?= seek_token 'rvalue', root
+      if scope
+        ret.scope = gen scope
+      
       ret
     
     else
@@ -175,9 +213,16 @@ class Ti_context
           continue if tuple[0] != a
           continue if tuple[1] != b
           found = true
-          t.type = type tuple[2]
+          t.type = new Type tuple[2]
         if !found
           throw new Error "unknown bin_op=#{t.op} a=#{a} b=#{b}"
+        t.type
+      when "Fn_decl"
+        ctx_nest = ctx.mk_nest()
+        for name,k in t.arg_name_list
+          type = t.type.nest_list[k+1]
+          ctx_nest.var_hash[name] = type
+        walk t.scope, ctx_nest
         t.type
       else
         null
