@@ -234,3 +234,37 @@ describe 'exp_node2ast_trans section', ()->
           b : 0
         
         """
+    it 'complex1', ()->
+      assert.equal run("""
+        class World
+          var agent_list : array<float>
+          a():int->
+          b():int->
+          c():int->
+        class Test1
+          a():void->
+            0
+          b():void->
+          c():void->
+
+        """), """
+        class World
+          agent_list : []
+          a : ()->
+            
+          b : ()->
+            
+          c : ()->
+            
+          constructor : ()->
+            @agent_list = []
+
+        class Test1
+          a : ()->
+            0
+          b : ()->
+            
+          c : ()->
+            
+        
+        """

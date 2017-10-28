@@ -370,7 +370,7 @@ module.exports = (col)->
         '''
         q('stmt_plus', '#stmt')                           .mx("priority=#{base_priority} ult=deep_scope ti=pass")
         q('stmt_plus', '#stmt #stmt_plus')                .mx("priority=#{base_priority} ult=deep_scope").strict("$1.eol")
-        q('stmt_plus', '#stmt_plus #eol #stmt')           .mx("priority=#{base_priority} ult=deep_scope ti=stmt_plus_last eol_pass=1")
+        q('stmt_plus', '#stmt #eol #stmt_plus')           .mx("priority=#{base_priority} ult=deep_scope ti=stmt_plus_last eol_pass=1")
         
         '''#'
       ]
