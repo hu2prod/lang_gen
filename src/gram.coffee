@@ -369,6 +369,7 @@ module.exports = (col)->
       ret.gram_list = [
         '''
         q('stmt_plus', '#stmt')                           .mx("priority=#{base_priority} ult=deep_scope ti=pass")
+        q('stmt_plus', '#stmt #stmt_plus')                .mx("priority=#{base_priority} ult=deep_scope").strict("$1.eol")
         q('stmt_plus', '#stmt_plus #eol #stmt')           .mx("priority=#{base_priority} ult=deep_scope ti=stmt_plus_last eol_pass=1")
         
         '''#'
@@ -467,7 +468,8 @@ module.exports = (col)->
     ret.compile_fn = ()->
       ret.gram_list = []
       ret.gram_list.push '''
-        q('stmt', 'class #tok_identifier #block?').mx('ult=class_decl')
+        q('stmt', 'class #tok_identifier')        .mx('ult=class_decl')
+        q('stmt', 'class #tok_identifier #block') .mx('ult=class_decl eol=1')
       '''#'
       
       return
