@@ -376,26 +376,6 @@ module.exports = (col)->
       return
     ret
   
-  bp = col.autogen 'gram_fn_decl', /^gram_fn_decl$/, (ret)->
-    # ret.hash.arrow = true
-    ret.hash.fat_arrow = true # LATER
-    ret.hash.require_list = ['gram_type']
-    
-    ret.compile_fn = ()->
-      ret.gram_list = []
-      # TODO default value
-      # q('rvalue', '( #fn_decl_arg_list? ) : #type ->').mx("ult=closure")
-      ret.gram_list.push '''
-        q('fn_decl_arg', '#tok_identifier : #type')
-        q('fn_decl_arg_list', '#fn_decl_arg')
-        q('fn_decl_arg_list', '#fn_decl_arg , #fn_decl_arg_list')
-        q('stmt', '#tok_identifier ( #fn_decl_arg_list? ) : #type -> #block?').mx('ult=fn_decl')
-        q('stmt', '#tok_identifier ( #fn_decl_arg_list? ) : #type -> #rvalue').mx('ult=fn_decl')
-      '''#'
-      
-      return
-    ret
-  
   # дает {} : и string
   bp = col.autogen 'gram_hash', /^gram_hash$/, (ret)->
     ret.hash.key_int          = true
@@ -458,6 +438,38 @@ module.exports = (col)->
         q('stmt', 'var #tok_identifier : #type')          .mx("ult=var_decl ti=var_decl")
         
       '''#'
+      return
+    ret
+  
+  bp = col.autogen 'gram_fn_decl', /^gram_fn_decl$/, (ret)->
+    # ret.hash.arrow = true
+    ret.hash.fat_arrow = true # LATER
+    ret.hash.require_list = ['gram_type']
+    
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      # TODO default value
+      # q('rvalue', '( #fn_decl_arg_list? ) : #type ->').mx("ult=closure")
+      ret.gram_list.push '''
+        q('fn_decl_arg', '#tok_identifier : #type')
+        q('fn_decl_arg_list', '#fn_decl_arg')
+        q('fn_decl_arg_list', '#fn_decl_arg , #fn_decl_arg_list')
+        q('stmt', '#tok_identifier ( #fn_decl_arg_list? ) : #type -> #block?').mx('ult=fn_decl')
+        q('stmt', '#tok_identifier ( #fn_decl_arg_list? ) : #type -> #rvalue').mx('ult=fn_decl')
+      '''#'
+      
+      return
+    ret
+  
+  bp = col.autogen 'gram_class_decl', /^gram_class_decl$/, (ret)->
+    ret.hash.require_list = ['gram_fn_decl', 'gram_var_decl']
+    
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      ret.gram_list.push '''
+        q('stmt', 'class #tok_identifier #block?').mx('ult=class_decl')
+      '''#'
+      
       return
     ret
   

@@ -316,11 +316,6 @@ module.exports = (col)->
     
     ret
   
-  bp = col.autogen 'tok_fn', /^tok_fn$/, (ret)->
-    ret.hash.arrow = true
-    ret.hash.fat_arrow = true
-    ret
-  
   # дает {} : и string
   bp = col.autogen 'tok_hash', /^tok_hash$/, (ret)->
     ret.hash.require_list = ['tok_pair_delimiter']

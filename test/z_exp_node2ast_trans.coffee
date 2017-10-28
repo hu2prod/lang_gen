@@ -49,3 +49,10 @@ describe 'exp_node2ast_trans section', ()->
     
     it 'a(b:int):int->\n  b', ()->
       assert.equal run("a(b: int):int->\n  b"), "a = (b)->\n  b"
+  
+  describe 'class_decl', ()->
+    it 'class a', ()->
+      assert.equal run("class a"), "class a\n  "
+    
+    it 'class a var b : int', ()->
+      assert.equal run("class a\n  var b : int"), "class a\n  b : 0"

@@ -45,8 +45,8 @@ main.inject ()->
   col.gen 'gram_stmt'
   col.gen 'gram_int_family'
   col.gen 'gram_var_decl'
-  
   col.gen 'gram_fn_decl'
+  col.gen 'gram_class_decl'
 
 main.compile()
 fs.writeFileSync "gram.gen.coffee", main.hash.cont

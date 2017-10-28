@@ -161,6 +161,15 @@ seek_token = (name, t)->
         ret.scope = gen scope
       
       ret
+    when "class_decl"
+      ret = new ast.Class_decl
+      ret.name = root.value_array[1].value
+      
+      if scope = seek_token 'block', root
+        ret.scope = gen scope
+      
+      ret
+      
     
     else
       perr root
