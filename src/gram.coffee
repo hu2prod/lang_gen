@@ -464,7 +464,8 @@ module.exports = (col)->
         q('fn_decl_arg', '#tok_identifier : #type')
         q('fn_decl_arg_list', '#fn_decl_arg')
         q('fn_decl_arg_list', '#fn_decl_arg , #fn_decl_arg_list')
-        q('stmt', '#tok_identifier ( #fn_decl_arg_list? ) : #type -> #block?').mx('ult=fn_decl')
+        q('stmt', '#tok_identifier ( #fn_decl_arg_list? ) : #type ->').mx('ult=fn_decl')
+        q('stmt', '#tok_identifier ( #fn_decl_arg_list? ) : #type -> #block').mx('ult=fn_decl eol=1')
         q('stmt', '#tok_identifier ( #fn_decl_arg_list? ) : #type -> #rvalue').mx('ult=fn_decl')
         
       '''#'
@@ -478,8 +479,8 @@ module.exports = (col)->
     ret.compile_fn = ()->
       ret.gram_list = []
       ret.gram_list.push '''
-        q('stmt', 'class #tok_identifier')        .mx('ult=class_decl')
-        q('stmt', 'class #tok_identifier #block') .mx('ult=class_decl eol=1')
+        q('stmt', 'class #tok_identifier')                .mx('ult=class_decl')
+        q('stmt', 'class #tok_identifier #block')         .mx('ult=class_decl eol=1')
         
       '''#'
       

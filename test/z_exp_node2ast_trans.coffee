@@ -82,7 +82,25 @@ describe 'exp_node2ast_trans section', ()->
       assert.equal run("a(b: int):int->b"), "a = (b)->\n  b"
     
     it 'a(b:int):int->\n  b', ()->
-      assert.equal run("a(b: int):int->\n  b"), "a = (b)->\n  b"
+      assert.equal run("""
+        a(b: int):int->
+          b
+        """), """
+        a = (b)->
+          b
+        """
+    
+    it 'a():void->\n  # comment\nb():void->', ()->
+      assert.equal run("""
+        a():void->
+          # comment
+        b():void->
+        """), """
+        a = ()->
+          
+        b = ()->
+          
+        """
   
   describe 'class_decl', ()->
     it 'class a', ()->
