@@ -42,7 +42,7 @@ module.exports = (col)->
       post_jl = []
       if ret.hash.tab_to_2space
         pre_jl.push """
-          str = str.replace /\t/, '  '
+          str = str.replace /\\t/, '  '
           """
       if ret.hash.dedent_fix
         pre_jl.push '''
@@ -96,8 +96,13 @@ module.exports = (col)->
       tokenizer = new Tokenizer
       tokenizer.parser_list.push (new Token_parser 'Xdent', /^\\n/, (_this, ret_value, q)->
         _this.text = _this.text.substr 1 # \n
-        tail_space_len = /^[ \t]*/.exec(_this.text)[0].length
+        
+        len = /^([ \\t]*\\n)*/.exec(_this.text)[0].length
+        _this.text = _this.text.substr len
+        
+        tail_space_len = /^[ \\t]*/.exec(_this.text)[0].length
         _this.text = _this.text.substr tail_space_len
+        
         if tail_space_len != last_space
           while last_space < tail_space_len
             node = new Node

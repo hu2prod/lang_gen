@@ -368,9 +368,9 @@ module.exports = (col)->
     ret.compile_fn = ()->
       ret.gram_list = [
         '''
-        q('stmt_plus', '#stmt')                           .mx("priority=#{base_priority} ult=deep_scope ti=pass")
-        q('stmt_plus', '#stmt #stmt_plus')                .mx("priority=#{base_priority} ult=deep_scope").strict("$1.eol")
-        q('stmt_plus', '#stmt #eol #stmt_plus')           .mx("priority=#{base_priority} ult=deep_scope ti=stmt_plus_last eol_pass=1")
+        q('stmt_plus', '#stmt')                           .mx("ult=deep_scope ti=pass")
+        q('stmt_plus', '#stmt #stmt_plus')                .mx("ult=deep_scope").strict("$1.eol")
+        q('stmt_plus', '#stmt #eol #stmt_plus')           .mx("ult=deep_scope ti=stmt_plus_last eol_pass=1")
         
         '''#'
       ]

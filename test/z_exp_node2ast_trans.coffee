@@ -162,6 +162,17 @@ describe 'exp_node2ast_trans section', ()->
         
         """
     
+    it 'class a var b : int sp', ()->
+      assert.equal run("""
+        class a
+          var b : int
+          
+        """), """
+        class a
+          b : 0
+        
+        """
+    
     it 'class a var b : int var c: int', ()->
       assert.equal run("""
         class a
