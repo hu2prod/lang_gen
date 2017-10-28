@@ -50,6 +50,7 @@ main.inject ()->
   col.gen 'gram_int_family'
   col.gen 'gram_float_family'
   col.gen 'gram_var_decl'
+  col.gen 'gram_macro'
   col.gen 'gram_fn_decl'
   col.gen 'gram_class_decl'
 

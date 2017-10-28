@@ -68,6 +68,16 @@ seek_token = (name, t)->
   for v in t.value_array
     return v if v.mx_hash.hash_key == name
   null
+gen = null
+
+macro_fn_map =
+  'if' : (condition, block)->
+    if !condition
+      throw new Error "macro if should have condition"
+    ret = new ast.If
+    ret.cond= gen condition
+    ret.t   = gen block
+    ret
 
 @_gen = gen = (root)->
   switch root.mx_hash.ult
@@ -142,6 +152,14 @@ seek_token = (name, t)->
         throw new Error "unknown post_op=#{op}"
       ret.a = gen root.value_array[0]
       ret
+    
+    when "macro"
+      macro_name = root.value_array[0].value
+      condition = seek_token 'rvalue', root
+      scope = seek_token 'block', root
+      if !fn = macro_fn_map[macro_name]
+        throw new Error "unknown macro '#{macro_name}'. Known macro list = [#{Object.keys(macro_fn_map).join ', '}]"
+      fn(condition, scope)
     
     when "fn_decl"
       ret = new ast.Fn_decl
@@ -241,6 +259,11 @@ class Ti_context
         if !found
           throw new Error "unknown bin_op=#{t.op} a=#{a} b=#{b}"
         t.type
+      when "If"
+        walk(t.cond, ctx)
+        walk(t.t, ctx)
+        walk(t.f, ctx)
+        null
       when "Un_op"
         list = ast.un_op_ret_type_hash_list[t.op]
         a = walk(t.a, ctx).toString()

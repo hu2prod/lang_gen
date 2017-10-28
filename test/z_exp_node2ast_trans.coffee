@@ -68,6 +68,13 @@ describe 'exp_node2ast_trans section', ()->
       it 'a++ string', ()->
         assert.throws ()-> run("var a:string\na++")
   
+  describe 'control flow', ()->
+    it 'if 1 2', ()->
+      assert.equal run(t = """
+        if 1
+          2
+        """), t
+  
   describe 'fn_decl', ()->
     it 'a():void->', ()->
       assert.equal run("a():void->"), "a = ()->\n  "

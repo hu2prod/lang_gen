@@ -451,6 +451,17 @@ module.exports = (col)->
       return
     ret
   
+  bp = col.autogen 'gram_macro', /^gram_macro$/, (ret)->
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      ret.gram_list.push '''
+        q('stmt', '#tok_identifier #block')               .mx("ult=macro ti=macro eol=1")
+        q('stmt', '#tok_identifier #rvalue #block')       .mx("ult=macro ti=macro eol=1").strict("#tok_identifier!='class'")
+        
+      '''#'
+      return
+    
+  
   bp = col.autogen 'gram_fn_decl', /^gram_fn_decl$/, (ret)->
     # ret.hash.arrow = true
     ret.hash.fat_arrow = true # LATER

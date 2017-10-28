@@ -117,7 +117,7 @@ module.exports = (col)->
             ret_value.push [node]
             last_space -= 2
         else
-          return if _this.ret_access.last()?[0].mx_hash.hash_key == 'eol' # do not duplicate
+          # return if _this.ret_access.last()?[0].mx_hash.hash_key == 'eol' # do not duplicate
           node = new Node
           node.mx_hash.hash_key = 'eol'
           ret_value.push [node]
