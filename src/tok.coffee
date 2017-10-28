@@ -145,24 +145,45 @@ module.exports = (col)->
       ret.parser_list = []
       if ret.hash.dec
         if ret.hash.oct_unsafe
-          ret.parser_list.push "new Token_parser 'decimal_literal', /^#{aux_sign}(0|[1-9][0-9]*)/"
+          ret.parser_list.push "new Token_parser 'tok_decimal_literal', /^#{aux_sign}(0|[1-9][0-9]*)/"
         else
-          ret.parser_list.push "new Token_parser 'decimal_literal', /^#{aux_sign}[0-9]+/"
+          ret.parser_list.push "new Token_parser 'tok_decimal_literal', /^#{aux_sign}[0-9]+/"
       if ret.hash.oct
-        ret.parser_list.push "new Token_parser 'octal_literal', /^0o[0-7]+/i"
+        ret.parser_list.push "new Token_parser 'tok_octal_literal', /^0o[0-7]+/i"
       if ret.hash.oct_unsafe
-        ret.parser_list.push "new Token_parser 'octal_literal', /^0[0-7]+/"
+        ret.parser_list.push "new Token_parser 'tok_octal_literal', /^0[0-7]+/"
       if ret.hash.hex
-        ret.parser_list.push "new Token_parser 'hexadecimal_literal', /^0x[0-9a-f]+/i"
+        ret.parser_list.push "new Token_parser 'tok_hexadecimal_literal', /^0x[0-9a-f]+/i"
       if ret.hash.bin
-        ret.parser_list.push "new Token_parser 'binary_literal', /^0b[01]+/i"
+        ret.parser_list.push "new Token_parser 'tok_binary_literal', /^0b[01]+/i"
       return
     ret
   
   bp = col.autogen 'tok_float_family', /^tok_float_family$/, (ret)->
     ret.hash.sign = false
     ret.hash.miss_start_zero = false
+    ret.hash.miss_last_zero  = true
     ret.hash.exp = true
+    
+    ret.compile_fn = ()->
+      aux_sign = ""
+      if ret.hash.sign
+        aux_sign = "[-+]?"
+      ret.parser_list = []
+      
+      start = "\\d+"
+      start = "\\d*" if ret.hash.miss_start_zero
+      end   = "\\d+"
+      end   = "(?!\\.)\\d*" if ret.hash.miss_last_zero
+      main  = "#{start}\\.#{end}"
+      exp_payload = "(?:e[+-]?\\d+)"
+      main += "#{exp_payload}?" if ret.hash.exp
+      
+      ret.parser_list.push "new Token_parser 'tok_float_literal', /^#{aux_sign}#{main}/i"
+      if ret.hash.exp
+        ret.parser_list.push "new Token_parser 'tok_float_literal', /^#{aux_sign}\\d+#{exp_payload}/i"
+      return
+    
     ret
   
   bp = col.autogen 'tok_at', /^tok_at$/, (ret)->

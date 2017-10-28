@@ -2,8 +2,8 @@ Type = require 'type'
 ast = require 'ast4gen'
 
 pre_op_map =
-  '++'  : 'RET_INC'
-  '--'  : 'RET_DEC'
+  '++'  : 'INC_RET'
+  '--'  : 'DEC_RET'
   '!'   : 'BOOL_NOT'
   '~'   : 'BIT_NOT'
   'not' : 'BOOL_NOT' # пока так. На самом деле ti
@@ -11,8 +11,8 @@ pre_op_map =
   '-'   : 'MINUS'
 
 post_op_map =
-  '++'  : 'INC_RET'
-  '--'  : 'DEC_RET'
+  '++'  : 'RET_INC'
+  '--'  : 'RET_DEC'
   
 
 bin_op_map =
@@ -76,6 +76,7 @@ seek_token = (name, t)->
       for v in root.value_array
         continue if v.mx_hash.hash_key == 'eol'
         loc = gen v
+        continue if !loc
         if loc instanceof ast.Scope
           ret.list.append loc.list
         else
@@ -84,6 +85,9 @@ seek_token = (name, t)->
     
     when "block"
       gen root.value_array[1]
+    
+    when "comment"
+      null
     
     when "var_decl"
       ret = new ast.Var_decl
@@ -95,9 +99,15 @@ seek_token = (name, t)->
       gen root.value_array[0]
     
     when "id"
-      ret = new ast.Var
-      ret.name = root.value_view
-      ret
+      if root.value_view in ["true", "false"]
+        ret = new ast.Const
+        ret.val = root.value_view
+        ret.type = new Type "bool"
+        ret
+      else
+        ret = new ast.Var
+        ret.name = root.value_view
+        ret
     
     when "const"
       ret = new ast.Const
@@ -109,6 +119,7 @@ seek_token = (name, t)->
       ret = new ast.Bin_op
       ret.op = bin_op_map[op = root.value_array[1].value_view]
       if !ret.op
+        ### !pragma coverage-skip-block ###
         throw new Error "unknown bin_op=#{op}"
       ret.a = gen root.value_array[0]
       ret.b = gen root.value_array[2]
@@ -118,6 +129,7 @@ seek_token = (name, t)->
       ret = new ast.Un_op
       ret.op = pre_op_map[op = root.value_array[0].value_view]
       if !ret.op
+        ### !pragma coverage-skip-block ###
         throw new Error "unknown pre_op=#{op}"
       ret.a = gen root.value_array[1]
       ret
@@ -126,6 +138,7 @@ seek_token = (name, t)->
       ret = new ast.Un_op
       ret.op = post_op_map[op = root.value_array[1].value_view]
       if !ret.op
+        ### !pragma coverage-skip-block ###
         throw new Error "unknown post_op=#{op}"
       ret.a = gen root.value_array[0]
       ret
@@ -172,6 +185,7 @@ seek_token = (name, t)->
       
     
     else
+      ### !pragma coverage-skip-block ###
       perr root
       throw new Error "unknown ult=#{root.mx_hash.ult}"
 
@@ -216,6 +230,7 @@ class Ti_context
         a = walk(t.a, ctx).toString()
         b = walk(t.b, ctx).toString()
         if !list
+          ### !pragma coverage-skip-block ###
           throw new Error "unknown bin_op=#{t.op}"
         found = false
         for tuple in list
@@ -225,6 +240,20 @@ class Ti_context
           t.type = new Type tuple[2]
         if !found
           throw new Error "unknown bin_op=#{t.op} a=#{a} b=#{b}"
+        t.type
+      when "Un_op"
+        list = ast.un_op_ret_type_hash_list[t.op]
+        a = walk(t.a, ctx).toString()
+        if !list
+          ### !pragma coverage-skip-block ###
+          throw new Error "unknown un_op=#{t.op}"
+        found = false
+        for tuple in list
+          continue if tuple[0] != a
+          found = true
+          t.type = new Type tuple[1]
+        if !found
+          throw new Error "unknown un_op=#{t.op} a=#{a}"
         t.type
       when "Fn_decl"
         ctx_nest = ctx.mk_nest()

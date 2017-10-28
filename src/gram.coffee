@@ -109,15 +109,15 @@ module.exports = (col)->
     ret.compile_fn = ()->
       ret.gram_list =[]
       if ret.hash.dec
-        ret.gram_list.push 'q("num_const", "#decimal_literal")                .mx("ult=const ti=const type=int")'
+        ret.gram_list.push 'q("num_const", "#tok_decimal_literal")            .mx("ult=const ti=const type=int")'
       # if ret.hash.oct_unsafe
-        # ret.gram_list.push 'q("num_const", "#octal_literal")                  .mx("ult=const ti=const type=int")'
+        # ret.gram_list.push 'q("num_const", "#tok_octal_literal")              .mx("ult=const ti=const type=int")'
       if ret.hash.oct
-        ret.gram_list.push 'q("num_const", "#octal_literal")                  .mx("ult=const ti=const type=int")'
+        ret.gram_list.push 'q("num_const", "#tok_octal_literal")              .mx("ult=const ti=const type=int")'
       if ret.hash.hex
-        ret.gram_list.push 'q("num_const", "#hexadecimal_literal")            .mx("ult=const ti=const type=int")'
+        ret.gram_list.push 'q("num_const", "#tok_hexadecimal_literal")        .mx("ult=const ti=const type=int")'
       if ret.hash.bin
-        ret.gram_list.push 'q("num_const", "#binary_literal")                 .mx("ult=const ti=const type=int")'
+        ret.gram_list.push 'q("num_const", "#tok_binary_literal")             .mx("ult=const ti=const type=int")'
       ret.gram_list.push ''
       return
     ret
@@ -125,7 +125,7 @@ module.exports = (col)->
   bp = col.autogen 'gram_float_family', /^gram_float_family$/, (ret)->
     ret.compile_fn = ()->
       ret.gram_list = [
-        'q("num_const", "#float_literal")                        .mx("ult=const ti=const type=float")'
+        'q("num_const", "#tok_float_literal")              .mx("ult=const ti=const type=float")'
         ''
       ]
       return
@@ -395,7 +395,16 @@ module.exports = (col)->
     ret.hash.skip_comma_multiline = true
     ret
   
-  bp = col.autogen 'gram_class', /^gram_class$/, (ret)->
+  bp = col.autogen 'gram_comment', /^gram_comment$/, (ret)->
+    ret.compile_fn = ()->
+      ret.gram_list = [
+        '''
+        q('stmt', '#tok_inline_comment')                  .mx("ult=comment ti=pass")
+        q('stmt', '#tok_multiline_comment')               .mx("ult=comment ti=pass")
+        
+        '''#'
+      ]
+      return
     ret
   
   bp = col.autogen 'gram_type', /^gram_type$/, (ret)->
@@ -457,6 +466,7 @@ module.exports = (col)->
         q('fn_decl_arg_list', '#fn_decl_arg , #fn_decl_arg_list')
         q('stmt', '#tok_identifier ( #fn_decl_arg_list? ) : #type -> #block?').mx('ult=fn_decl')
         q('stmt', '#tok_identifier ( #fn_decl_arg_list? ) : #type -> #rvalue').mx('ult=fn_decl')
+        
       '''#'
       
       return
@@ -470,6 +480,7 @@ module.exports = (col)->
       ret.gram_list.push '''
         q('stmt', 'class #tok_identifier')        .mx('ult=class_decl')
         q('stmt', 'class #tok_identifier #block') .mx('ult=class_decl eol=1')
+        
       '''#'
       
       return

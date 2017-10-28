@@ -23,6 +23,34 @@ describe 'exp_node2ast_trans section', ()->
     it '1', ()->
       assert.equal run("1"), "1"
     
+    it '1+2', ()->
+      assert.equal run("1+2"), "(1 + 2)"
+    
+    it '1.0', ()->
+      assert.equal run("1.0"), "1.0"
+    
+    it '1.0+2.0', ()->
+      assert.equal run("1.0+2.0"), "(1.0 + 2.0)"
+    
+    it 'true', ()->
+      assert.equal run("true"), "true"
+    
+    it '!true', ()->
+      assert.equal run("!true"), "!(true)"
+    
+    it 'a++', ()->
+      assert.equal run("var a:int\na++"), "(a)++"
+    
+    it '#a', ()->
+      assert.equal run("#a"), ""
+    
+    # BUG
+    # it '###a###', ()->
+      # assert.equal run("###a###"), ""
+    
+    it '###\\na###', ()->
+      assert.equal run("###\na###"), ""
+    
     it 'var a : int', ()->
       assert.equal run("var a:int"), ""
     
@@ -33,6 +61,12 @@ describe 'exp_node2ast_trans section', ()->
     describe 'throws', ()->
       it 'a', ()->
         assert.throws ()-> run("a")
+      
+      it '1&2.0', ()->
+        assert.throws ()-> run("1&2.0")
+      
+      it 'a++ string', ()->
+        assert.throws ()-> run("var a:string\na++")
   
   describe 'fn_decl', ()->
     it 'a():void->', ()->
@@ -71,10 +105,67 @@ describe 'exp_node2ast_trans section', ()->
         
         """
     
+    it 'class a class b sp', ()->
+      assert.equal run("""
+        class a
+        
+        class b
+        """), """
+        class a
+          
+        
+        class b
+          
+        
+        """
+    
+    it 'class a class b sp2', ()->
+      assert.equal run("""
+        class a
+        
+        
+        class b
+        """), """
+        class a
+          
+        
+        class b
+          
+        
+        """
+    
     it 'class a var b : int', ()->
-      assert.equal run("class a\n  var b : int"), """
+      assert.equal run("""
+        class a
+          var b : int
+        """), """
         class a
           b : 0
+        
+        """
+    
+    it 'class a var b : int var c: int', ()->
+      assert.equal run("""
+        class a
+          var b : int
+          var c : int
+        """), """
+        class a
+          b : 0
+          c : 0
+        
+        """
+    
+    it 'class a var b : int var c: int sp', ()->
+      assert.equal run("""
+        class a
+          var b : int
+          
+          var c : int
+        """), """
+        class a
+          b : 0
+          c : 0
         
         """
     
@@ -82,6 +173,39 @@ describe 'exp_node2ast_trans section', ()->
       assert.equal run("""
         class a
           var b : int
+        class b
+          var b : int
+        """), """
+        class a
+          b : 0
+        
+        class b
+          b : 0
+        
+        """
+    
+    it 'class a var b : int class b var b : int sp', ()->
+      assert.equal run("""
+        class a
+          var b : int
+        
+        class b
+          var b : int
+        """), """
+        class a
+          b : 0
+        
+        class b
+          b : 0
+        
+        """
+    
+    it 'class a var b : int class b var b : int sp2', ()->
+      assert.equal run("""
+        class a
+          var b : int
+        
+        
         class b
           var b : int
         """), """

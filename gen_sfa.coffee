@@ -21,8 +21,11 @@ main.inject ()->
   col.gen 'tok_bin_op'
   col.gen 'tok_un_op'
   col.gen 'tok_int_family'
+  col.gen 'tok_float_family'
   col.gen 'tok_var_decl'
   col.gen 'tok_fn_decl'
+  col.gen 'tok_inline_comment'
+  col.gen 'tok_multiline_comment'
 
 main.hash.dedent_fix    = true
 main.hash.remove_end_eol= true
@@ -43,7 +46,9 @@ main.inject ()->
   col.gen 'gram_pre_op'
   col.gen 'gram_post_op'
   col.gen 'gram_stmt'
+  col.gen 'gram_comment'
   col.gen 'gram_int_family'
+  col.gen 'gram_float_family'
   col.gen 'gram_var_decl'
   col.gen 'gram_fn_decl'
   col.gen 'gram_class_decl'
