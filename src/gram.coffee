@@ -461,6 +461,37 @@ module.exports = (col)->
       '''#'
       return
   
+  bp = col.autogen 'gram_for_range', /^gram_for_range$/, (ret)->
+    ret.hash.allow_step = true
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      ret.gram_list.push '''
+        q('ranger', '..')                                 .mx("ult=macro ti=macro eol=1")
+        q('ranger', '...')                                .mx("ult=macro ti=macro eol=1")
+        q('stmt', 'for #tok_identifier in [ #rvalue #ranger #rvalue ] #block').mx("ult=for_range ti=macro eol=1")
+      '''#'
+      if ret.hash.allow_step
+        ret.gram_list.push '''
+          q('stmt', 'for #tok_identifier in [ #rvalue #ranger #rvalue ] by #rvalue #block').mx("ult=for_range ti=macro eol=1")
+        '''#'
+      ret.gram_list.push ""
+      
+      # if ret.hash.allow_step
+      #   ret.gram_list.push '''
+      #     q('stmt', 'for #tok_identifier                   in [ #rvalue #ranger #rvalue ] #block').mx("ult=for_range ti=macro eol=1")
+      #     q('stmt', 'for #tok_identifier , #tok_identifier in [ #rvalue #ranger #rvalue ] #block').mx("ult=for_range ti=macro eol=1")
+      #     q('stmt', 'for #tok_identifier                   in [ #rvalue #ranger #rvalue ] by #rvalue #block').mx("ult=for_range ti=macro eol=1")
+      #     q('stmt', 'for #tok_identifier , #tok_identifier in [ #rvalue #ranger #rvalue ] by #rvalue #block').mx("ult=for_range ti=macro eol=1")
+      #     
+      #   '''#'
+      # else
+      #   ret.gram_list.push '''
+      #     q('stmt', 'for #tok_identifier                   in [ #rvalue #ranger #rvalue ] #block').mx("ult=for_range ti=macro eol=1")
+      #     q('stmt', 'for #tok_identifier , #tok_identifier in [ #rvalue #ranger #rvalue ] #block').mx("ult=for_range ti=macro eol=1")
+      #     
+      #   '''#'
+      return
+  
   bp = col.autogen 'gram_field_access', /^gram_field_access$/, (ret)->
     ret.compile_fn = ()->
       ret.gram_list = []

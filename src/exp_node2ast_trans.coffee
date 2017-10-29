@@ -68,6 +68,11 @@ seek_token = (name, t)->
   for v in t.value_array
     return v if v.mx_hash.hash_key == name
   null
+seek_token_list = (name, t)->
+  list = []
+  for v in t.value_array
+    list.push v if v.mx_hash.hash_key == name
+  list
 gen = null
 
 macro_fn_map =
@@ -166,6 +171,24 @@ macro_fn_map =
       if !fn = macro_fn_map[macro_name]
         throw new Error "unknown macro '#{macro_name}'. Known macro list = [#{Object.keys(macro_fn_map).join ', '}]"
       fn(condition, scope)
+    
+    when "for_range"
+      ret = new ast.For_range
+      ret.exclusive = seek_token('ranger', root).value_view == '...'
+      [_for_skip, i] = seek_token_list 'tok_identifier', root
+      # hack
+      i.mx_hash.hacked = 'true'
+      i.mx_hash.ult = 'id'
+      i.value_view = i.value
+      
+      ret.i = gen i
+      
+      [a, b, by_node] = seek_token_list 'rvalue', root
+      ret.a = gen a
+      ret.b = gen b
+      ret.step = gen by_node if by_node
+      ret.scope = gen seek_token 'block', root
+      ret
     
     when "fn_decl"
       ret = new ast.Fn_decl
@@ -292,14 +315,22 @@ class Ti_context
           field_hash = class_decl._prepared_field2type
         
         if !field_type = field_hash[t.name]
-          throw new Error "unknown field. '#{t.name}' at type '#{t.type}'. Allowed fields [#{Object.keys(field_hash).join ', '}]"
+          throw new Error "unknown field. '#{t.name}' at type '#{root_type}'. Allowed fields [#{Object.keys(field_hash).join ', '}]"
         t.type = field_type
         t.type
       
       when "If"
         walk(t.cond, ctx)
-        walk(t.t, ctx)
-        walk(t.f, ctx)
+        walk(t.t, ctx.mk_nest())
+        walk(t.f, ctx.mk_nest())
+        null
+      
+      when "For_range"
+        walk(t.i, ctx)
+        walk(t.a, ctx)
+        walk(t.b, ctx)
+        walk(t.step, ctx) if t.step
+        walk(t.scope, ctx.mk_nest())
         null
       
       when "Un_op"

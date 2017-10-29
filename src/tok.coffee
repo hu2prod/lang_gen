@@ -221,14 +221,21 @@ module.exports = (col)->
   bp = col.autogen 'tok_bracket_round', /^tok_bracket_round$/, (ret)->
     ret.compile_fn = ()->
       ret.parser_list = []
-      ret.parser_list.push "new Token_parser 'tok_bracket_round', /^[\(\)]/"
+      ret.parser_list.push "new Token_parser 'tok_bracket_round', /^[()]/"
       return
     ret
   
   bp = col.autogen 'tok_bracket_curve', /^tok_bracket_curve$/, (ret)->
     ret.compile_fn = ()->
       ret.parser_list = []
-      ret.parser_list.push "new Token_parser 'tok_bracket_curve', /^[\{\}]/"
+      ret.parser_list.push "new Token_parser 'tok_bracket_curve', /^[{}]/"
+      return
+    ret
+  
+  bp = col.autogen 'tok_bracket_square', /^tok_bracket_square$/, (ret)->
+    ret.compile_fn = ()->
+      ret.parser_list = []
+      ret.parser_list.push "new Token_parser 'tok_bracket_square', /^[\\[\\]]/"
       return
     ret
   

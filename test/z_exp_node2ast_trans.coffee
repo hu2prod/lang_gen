@@ -74,6 +74,26 @@ describe 'exp_node2ast_trans section', ()->
         if 1
           2
         """), t
+    
+    it 'for i in [1 .. 10] 0', ()->
+      assert.equal run(t = """
+        var i : int
+        for i in [1 .. 10]
+          0
+        """), """
+        for i in [1 .. 10]
+          0
+        """
+    
+    it 'for i in [1 .. 10] by 2 0', ()->
+      assert.equal run(t = """
+        var i : int
+        for i in [1 .. 10] by 2
+          0
+        """), """
+        for i in [1 .. 10] by 2
+          0
+        """
   
   describe 'field_access', ()->
     it 'var a : struct{a: int};a.a', ()->
@@ -83,6 +103,13 @@ describe 'exp_node2ast_trans section', ()->
         """), """
         (a).a
         """
+    
+    describe 'throws', ()->
+      it 'var a : struct{a: int};a.b', ()->
+        assert.throws ()-> assert.equal run("""
+          var a : struct{a: int}
+          a.b
+          """)
   
   describe 'fn_decl', ()->
     it 'a():void->', ()->
@@ -330,6 +357,13 @@ describe 'exp_node2ast_trans section', ()->
             
         
         """
+    describe 'throws', ()->
+      it 'class C1 var a: int;var a : C2;', ()->
+        assert.throws ()-> run("""
+          class C1
+            var a : int
+          var a : C2
+          """)
     
     describe 'field_access', ()->
       it 'class C1 var a: int;var a : C1;a.a', ()->
@@ -358,3 +392,11 @@ describe 'exp_node2ast_trans section', ()->
               (this).a
           
           """
+      describe 'throws', ()->
+        it 'class C1 var a: int;var a : C1;a.b', ()->
+          assert.throws ()-> run("""
+            class C1
+              var a : int
+            var a : C1
+            a.b
+            """)

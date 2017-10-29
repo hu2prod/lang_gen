@@ -26,6 +26,7 @@ main.inject ()->
   col.gen 'tok_fn_decl'
   col.gen 'tok_inline_comment'
   col.gen 'tok_multiline_comment'
+  col.gen 'tok_bracket_square'
 
 main.hash.dedent_fix    = true
 main.hash.remove_end_eol= true
@@ -52,6 +53,7 @@ main.inject ()->
   col.gen 'gram_var_decl'
   col.gen 'gram_field_access'
   col.gen 'gram_macro'
+  col.gen 'gram_for_range'
   col.gen 'gram_fn_decl'
   col.gen 'gram_class_decl'
 
