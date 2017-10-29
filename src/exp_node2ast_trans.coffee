@@ -84,6 +84,13 @@ macro_fn_map =
     ret.t   = gen block
     ret
 
+fix_iterator = (t)->
+  # hack. В идеале должен быть lvalue
+  t.mx_hash.hacked = 'true'
+  t.mx_hash.ult = 'id'
+  t.value_view = t.value
+  t
+
 @_gen = gen = (root)->
   switch root.mx_hash.ult
     when "deep_scope"
@@ -176,17 +183,26 @@ macro_fn_map =
       ret = new ast.For_range
       ret.exclusive = seek_token('ranger', root).value_view == '...'
       [_for_skip, i] = seek_token_list 'tok_identifier', root
-      # hack
-      i.mx_hash.hacked = 'true'
-      i.mx_hash.ult = 'id'
-      i.value_view = i.value
-      
-      ret.i = gen i
+      ret.i = gen fix_iterator i
       
       [a, b, by_node] = seek_token_list 'rvalue', root
       ret.a = gen a
       ret.b = gen b
       ret.step = gen by_node if by_node
+      ret.scope = gen seek_token 'block', root
+      ret
+    
+    when "for_col"
+      ret = new ast.For_col
+      [_for_skip, k, v, _skip_in] = seek_token_list 'tok_identifier', root
+      if !_skip_in
+        v = k
+        k = null
+      
+      ret.k = gen fix_iterator k if k
+      ret.v = gen fix_iterator v
+      ret.t = gen seek_token 'rvalue', root
+      
       ret.scope = gen seek_token 'block', root
       ret
     
@@ -333,6 +349,13 @@ class Ti_context
         walk(t.scope, ctx.mk_nest())
         null
       
+      when "For_col"
+        walk(t.k, ctx) if t.k
+        walk(t.v, ctx)
+        walk(t.t, ctx)
+        walk(t.scope, ctx.mk_nest())
+        null
+      
       when "Un_op"
         list = ast.un_op_ret_type_hash_list[t.op]
         a = walk(t.a, ctx).toString()
@@ -375,7 +398,8 @@ class Ti_context
         walk t.scope, ctx_nest
         t.type
       else
-        null
+        ### !pragma coverage-skip-block ###
+        throw new Error "unknown node '#{t.constructor.name}'"
   walk ast_tree, new Ti_context
   
   

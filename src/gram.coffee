@@ -475,21 +475,16 @@ module.exports = (col)->
           q('stmt', 'for #tok_identifier in [ #rvalue #ranger #rvalue ] by #rvalue #block').mx("ult=for_range ti=macro eol=1")
         '''#'
       ret.gram_list.push ""
-      
-      # if ret.hash.allow_step
-      #   ret.gram_list.push '''
-      #     q('stmt', 'for #tok_identifier                   in [ #rvalue #ranger #rvalue ] #block').mx("ult=for_range ti=macro eol=1")
-      #     q('stmt', 'for #tok_identifier , #tok_identifier in [ #rvalue #ranger #rvalue ] #block').mx("ult=for_range ti=macro eol=1")
-      #     q('stmt', 'for #tok_identifier                   in [ #rvalue #ranger #rvalue ] by #rvalue #block').mx("ult=for_range ti=macro eol=1")
-      #     q('stmt', 'for #tok_identifier , #tok_identifier in [ #rvalue #ranger #rvalue ] by #rvalue #block').mx("ult=for_range ti=macro eol=1")
-      #     
-      #   '''#'
-      # else
-      #   ret.gram_list.push '''
-      #     q('stmt', 'for #tok_identifier                   in [ #rvalue #ranger #rvalue ] #block').mx("ult=for_range ti=macro eol=1")
-      #     q('stmt', 'for #tok_identifier , #tok_identifier in [ #rvalue #ranger #rvalue ] #block').mx("ult=for_range ti=macro eol=1")
-      #     
-      #   '''#'
+      return
+  
+  bp = col.autogen 'gram_for_col', /^gram_for_col$/, (ret)->
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      ret.gram_list.push '''
+        q('stmt', 'for #tok_identifier                   in #rvalue #block').mx("ult=for_col ti=macro eol=1")
+        q('stmt', 'for #tok_identifier , #tok_identifier in #rvalue #block').mx("ult=for_col ti=macro eol=1")
+        
+      '''#'
       return
   
   bp = col.autogen 'gram_field_access', /^gram_field_access$/, (ret)->

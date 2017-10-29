@@ -54,6 +54,7 @@ main.inject ()->
   col.gen 'gram_field_access'
   col.gen 'gram_macro'
   col.gen 'gram_for_range'
+  col.gen 'gram_for_col'
   col.gen 'gram_fn_decl'
   col.gen 'gram_class_decl'
 

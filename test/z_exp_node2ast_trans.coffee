@@ -94,6 +94,58 @@ describe 'exp_node2ast_trans section', ()->
         for i in [1 .. 10] by 2
           0
         """
+    
+    it 'for v in a 0', ()->
+      assert.equal run(t = """
+        var v : string
+        var a : array<string>
+        for v in a
+          0
+        """), """
+        for v in a
+          0
+        """
+    
+    it 'for k,v in a 0', ()->
+      assert.equal run(t = """
+        var k : int
+        var v : string
+        var a : array<string>
+        for k,v in a
+          0
+        """), """
+        for v,k in a
+          0
+        """
+    
+    it 'for v in a 0 hash', ()->
+      assert.equal run(t = """
+        var v : int
+        var a : hash<int>
+        for v in a
+          0
+        """), """
+        for _skip,v of a
+          0
+        """
+    
+    it 'for k,v in a 0 hash', ()->
+      assert.equal run(t = """
+        var k : string
+        var v : int
+        var a : hash<int>
+        for k,v in a
+          0
+        """), """
+        for k,v of a
+          0
+        """
+    describe 'throws', ()->
+      it 'wtf 1 2', ()->
+        assert.throws ()-> run("""
+          wtf 1
+            2
+          """)
   
   describe 'field_access', ()->
     it 'var a : struct{a: int};a.a', ()->
