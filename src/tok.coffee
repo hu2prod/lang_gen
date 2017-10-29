@@ -252,6 +252,7 @@ module.exports = (col)->
     ret.hash.ranger     = true # .. ...
     ret.hash.access     = true # .
     ret.hash.static_access= true # ::
+    ret.hash.assign     = true # =
     ret.hash.assign_check = false # ?=
     # js/coffee wierd stuff
     ret.hash.instanceof = false
@@ -279,6 +280,8 @@ module.exports = (col)->
       op_list.append ".. ..."         .split /\s+/g if ret.hash.ranger
       op_list.append "."              .split /\s+/g if ret.hash.access
       op_list.append "::"             .split /\s+/g if ret.hash.static_access
+      op_list.append "="              .split /\s+/g if ret.hash.assign
+      op_list.append "?="             .split /\s+/g if ret.hash.assign_check
       for v in "instanceof in of is isnt".split /\s+/g
         op_list.push v if ret.hash[v]
       
@@ -286,9 +289,10 @@ module.exports = (col)->
       for v in ret.hash.ban_list
         op_list.remove v
       
-      for v in ret.hash.assign_list
-        if op_list.has v
-          op_list.push "#{v}="
+      if ret.hash.assign
+        for v in ret.hash.assign_list
+          if op_list.has v
+            op_list.push "#{v}="
       
       # extra ban after assign_list
       for v in ret.hash.ban_list
