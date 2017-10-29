@@ -212,6 +212,13 @@ module.exports = (col)->
       return
     ret
   
+  bp = col.autogen 'tok_bracket_curve', /^tok_bracket_curve$/, (ret)->
+    ret.compile_fn = ()->
+      ret.parser_list = []
+      ret.parser_list.push "new Token_parser 'tok_bracket_curve', /^[\{\}]/"
+      return
+    ret
+  
   bp = col.autogen 'tok_bin_op', /^tok_bin_op$/, (ret)->
     ret.hash.arith      = true # + - * / %
     ret.hash.arith_ext  = true # ** // %%
@@ -365,7 +372,7 @@ module.exports = (col)->
     ret
   
   bp = col.autogen 'tok_var_decl', /^tok_var_decl$/, (ret)->
-    ret.hash.require_list = ['tok_pair_delimiter']
+    ret.hash.require_list = ['tok_pair_delimiter', 'tok_bracket_curve']
     ret
   
   bp = col.autogen 'tok_fn_decl', /^tok_fn_decl$/, (ret)->

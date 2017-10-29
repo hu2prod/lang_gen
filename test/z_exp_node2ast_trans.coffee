@@ -75,6 +75,15 @@ describe 'exp_node2ast_trans section', ()->
           2
         """), t
   
+  describe 'field_access', ()->
+    it 'var a : struct{a: int};a.a', ()->
+      assert.equal run("""
+        var a : struct{a: int}
+        a.a
+        """), """
+        (a).a
+        """
+  
   describe 'fn_decl', ()->
     it 'a():void->', ()->
       assert.equal run("a():void->"), "a = ()->\n  "
@@ -286,3 +295,30 @@ describe 'exp_node2ast_trans section', ()->
             
         
         """
+    describe 'field_access', ()->
+      it 'class C1 var a: int;var a : C1;a.a', ()->
+        assert.equal run("""
+          class C1
+            var a : int
+          var a : C1
+          a.a
+          """), """
+          class C1
+            a : 0
+          
+          (a).a
+          """
+      
+      it 'class C1 var a: int;b():void -> this.a', ()->
+        assert.equal run("""
+          class C1
+            var a : int
+            b():void -> this.a
+          
+          """), """
+          class C1
+            a : 0
+            b : ()->
+              (this).a
+          
+          """

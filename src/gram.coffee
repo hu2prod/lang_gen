@@ -460,6 +460,15 @@ module.exports = (col)->
         
       '''#'
       return
+  
+  bp = col.autogen 'gram_field_access', /^gram_field_access$/, (ret)->
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      ret.gram_list.push '''
+        q('lvalue', '#lvalue . #tok_identifier')          .mx("ult=field_access ti=macro")
+        
+      '''#'
+      return
     
   
   bp = col.autogen 'gram_fn_decl', /^gram_fn_decl$/, (ret)->

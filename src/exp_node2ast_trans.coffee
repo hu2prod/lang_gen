@@ -153,6 +153,12 @@ macro_fn_map =
       ret.a = gen root.value_array[0]
       ret
     
+    when "field_access"
+      ret = new ast.Field_access
+      ret.t    = gen root.value_array[0]
+      ret.name = root.value_array[2].value
+      ret
+    
     when "macro"
       macro_name = root.value_array[0].value
       condition = seek_token 'rvalue', root
@@ -226,9 +232,15 @@ class Ti_context
       return @parent.check_id id
     throw new Error "can't find decl for id '#{id}'"
   
+  check_type : (_type)->
+    return ret if ret = @type_hash[_type]
+    if @parent
+      return @parent.check_type _type
+    throw new Error "can't find type '#{_type}'"
+  
 @gen = (_root)->
   ast_tree = gen _root
-  # TODO type set
+  
   walk = (t, ctx)->
     switch t.constructor.name
       when "Scope"
@@ -259,6 +271,18 @@ class Ti_context
         if !found
           throw new Error "unknown bin_op=#{t.op} a=#{a} b=#{b}"
         t.type
+      when "Field_access"
+        root_type = walk(t.t, ctx)
+        if root_type.main == 'struct'
+          field_hash = root_type.field_hash
+        else
+          class_decl = ctx.check_type root_type.main
+          field_hash = class_decl._prepared_field2type
+        
+        if !field_type = field_hash[t.name]
+          throw new Error "unknown field. '#{t.name}' at type '#{t.type}'. Allowed fields [#{Object.keys(field_hash).join ', '}]"
+        t.type = field_type
+        t.type
       when "If"
         walk(t.cond, ctx)
         walk(t.t, ctx)
@@ -283,6 +307,20 @@ class Ti_context
         for name,k in t.arg_name_list
           type = t.type.nest_list[k+1]
           ctx_nest.var_hash[name] = type
+        walk t.scope, ctx_nest
+        t.type
+      when "Class_decl"
+        ctx.type_hash[t.name] = t
+        for v in t.scope.list
+          switch v.constructor.name
+            when "Var_decl"
+              t._prepared_field2type[v.name] = v.type
+            when "Fn_decl"
+              # BUG внутри scope уже есть this и ему нужен тип...
+              t._prepared_field2type[v.name] = v.type
+        
+        ctx_nest = ctx.mk_nest()
+        ctx_nest.var_hash["this"] = new Type t.name
         walk t.scope, ctx_nest
         t.type
       else
