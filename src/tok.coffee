@@ -128,10 +128,23 @@ module.exports = (col)->
     ]
     ret
   bp = col.autogen 'tok_id', /^tok_id$/, (ret)->
+    ret.hash.fix_return = true
     ret.compile_fn = ()->
-      ret.parser_list = [
-        "new Token_parser 'tok_identifier', /^[_\$a-z][_\$a-z0-9]*/i"
-      ]
+      if ret.hash.fix_return
+        ret.parser_list = [
+          """
+          new Token_parser 'tok_identifier', /^[_\$a-z][_\$a-z0-9]*/i, (_this, ret_proxy, v)->
+            if v.value == 'return'
+              v.mx_hash.hash_key = 'return'
+            ret_proxy.push [v]
+            return
+          
+          """
+        ]
+      else
+        ret.parser_list = [
+          "new Token_parser 'tok_identifier', /^[_\$a-z][_\$a-z0-9]*/i"
+        ]
       return
     ret
   # TODO number family

@@ -9,7 +9,7 @@ describe 'exp_node2ast_trans section', ()->
   parse = null
   run = (str)->
     tok = _tokenize str
-    ast = _parse tok
+    ast = _parse tok, mode_full:true
     ast_g= ast_gen ast[0]
     ast_g.validate()
     coffee_gen ast_g
@@ -117,6 +117,41 @@ describe 'exp_node2ast_trans section', ()->
         b = ()->
           
         """
+    
+    describe 'fn return', ()->
+      it 'void return', ()->
+        assert.equal run("""
+          b():void ->
+            return
+          
+          """), """
+          b = ()->
+            return
+          """
+  
+      it 'int return', ()->
+        assert.equal run("""
+          b():int ->
+            return 1
+          
+          """), """
+          b = ()->
+            return (1)
+          """
+      describe 'throws', ()->
+        it 'void return but decl int', ()->
+          assert.throws ()-> run("""
+            b():int ->
+              return
+            
+            """)
+    
+        it 'int return but decl void', ()->
+          assert.throws ()-> run("""
+            b():void ->
+              return 1
+            
+            """)
   
   describe 'class_decl', ()->
     it 'class a', ()->
@@ -295,6 +330,7 @@ describe 'exp_node2ast_trans section', ()->
             
         
         """
+    
     describe 'field_access', ()->
       it 'class C1 var a: int;var a : C1;a.a', ()->
         assert.equal run("""

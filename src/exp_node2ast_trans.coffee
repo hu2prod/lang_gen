@@ -198,6 +198,13 @@ macro_fn_map =
         ret.scope = gen scope
       
       ret
+    
+    when "return"
+      ret = new ast.Ret
+      if root.value_array[1]
+        ret.t = gen root.value_array[1]
+      ret
+    
     when "class_decl"
       ret = new ast.Class_decl
       ret.name = root.value_array[1].value
@@ -248,13 +255,17 @@ class Ti_context
         for v in t.list
           walk v, ctx_nest
         null
+      
       when "Var_decl"
         ctx.var_hash[t.name] = t.type
         null
+      
       when "Var"
         t.type = ctx.check_id t.name
+      
       when "Const"
         t.type
+      
       when "Bin_op"
         list = ast.bin_op_ret_type_hash_list[t.op]
         a = walk(t.a, ctx).toString()
@@ -271,6 +282,7 @@ class Ti_context
         if !found
           throw new Error "unknown bin_op=#{t.op} a=#{a} b=#{b}"
         t.type
+      
       when "Field_access"
         root_type = walk(t.t, ctx)
         if root_type.main == 'struct'
@@ -283,11 +295,13 @@ class Ti_context
           throw new Error "unknown field. '#{t.name}' at type '#{t.type}'. Allowed fields [#{Object.keys(field_hash).join ', '}]"
         t.type = field_type
         t.type
+      
       when "If"
         walk(t.cond, ctx)
         walk(t.t, ctx)
         walk(t.f, ctx)
         null
+      
       when "Un_op"
         list = ast.un_op_ret_type_hash_list[t.op]
         a = walk(t.a, ctx).toString()
@@ -302,6 +316,7 @@ class Ti_context
         if !found
           throw new Error "unknown un_op=#{t.op} a=#{a}"
         t.type
+      
       when "Fn_decl"
         ctx_nest = ctx.mk_nest()
         for name,k in t.arg_name_list
@@ -309,6 +324,11 @@ class Ti_context
           ctx_nest.var_hash[name] = type
         walk t.scope, ctx_nest
         t.type
+      
+      when "Ret"
+        walk t.t, ctx if t.t
+        null
+      
       when "Class_decl"
         ctx.type_hash[t.name] = t
         for v in t.scope.list

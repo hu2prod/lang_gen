@@ -488,6 +488,8 @@ module.exports = (col)->
         q('stmt', '#tok_identifier ( #fn_decl_arg_list? ) : #type -> #block').mx('ult=fn_decl eol=1')
         q('stmt', '#tok_identifier ( #fn_decl_arg_list? ) : #type -> #rvalue').mx('ult=fn_decl')
         
+        q('stmt', '#return #rvalue?')                     .mx('ult=return ti=return')
+        
       '''#'
       
       return
