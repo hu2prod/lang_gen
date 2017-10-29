@@ -197,6 +197,40 @@ describe 'exp_node2ast_trans section', ()->
           
         """
     
+    describe 'fn_call', ()->
+      it 'simple', ()->
+        assert.equal run("""
+          b():void ->
+            
+          b()
+          """), """
+          b = ()->
+            
+          (b)()
+          """
+      
+      it 'int', ()->
+        assert.equal run("""
+          b(a:int):void ->
+            
+          b(1)
+          """), """
+          b = (a)->
+            
+          (b)(1)
+          """
+      
+      it 'int, int', ()->
+        assert.equal run("""
+          b(a:int, c:int):void ->
+            
+          b(1, 2)
+          """), """
+          b = (a, c)->
+            
+          (b)(1, 2)
+          """
+      
     describe 'fn return', ()->
       it 'void return', ()->
         assert.equal run("""
@@ -429,6 +463,21 @@ describe 'exp_node2ast_trans section', ()->
             a : 0
           
           (a).a
+          """
+      
+      it 'fn_call', ()->
+        assert.equal run("""
+          class C1
+            a():void->
+              
+          var a : C1
+          a.a()
+          """), """
+          class C1
+            a : ()->
+              
+          
+          ((a).a)()
           """
       
       it 'class C1 var a: int;b():void -> this.a', ()->

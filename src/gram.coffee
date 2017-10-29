@@ -491,16 +491,29 @@ module.exports = (col)->
     ret.compile_fn = ()->
       ret.gram_list = []
       ret.gram_list.push '''
-        q('lvalue', '#lvalue . #tok_identifier')          .mx("ult=field_access ti=macro")
+        q('lvalue', '#rvalue . #tok_identifier')          .mx("ult=field_access ti=macro")
         
       '''#'
       return
     
   
+  bp = col.autogen 'gram_fn_call', /^gram_fn_call$/, (ret)->
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      ret.gram_list.push '''
+        q('fn_call_arg_list', '#rvalue')
+        q('fn_call_arg_list', '#rvalue , #fn_call_arg_list')
+        q('rvalue', '#rvalue ( #fn_call_arg_list? )').mx('ult=fn_call')
+        
+      '''#'
+      
+      return
+    ret
+  
   bp = col.autogen 'gram_fn_decl', /^gram_fn_decl$/, (ret)->
     # ret.hash.arrow = true
     ret.hash.fat_arrow = true # LATER
-    ret.hash.require_list = ['gram_type']
+    ret.hash.require_list = ['gram_type', 'gram_fn_call']
     
     ret.compile_fn = ()->
       ret.gram_list = []

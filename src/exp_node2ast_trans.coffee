@@ -238,6 +238,20 @@ fix_iterator = (t)->
       
       ret
     
+    when "fn_call"
+      ret = new ast.Fn_call
+      ret.fn = gen root.value_array[0]
+      arg_list = []
+      if fn_decl_arg_list = seek_token 'fn_call_arg_list', root
+        walk = (t)->
+          arg_list.push gen t.value_array[0]
+          if t.value_array.length == 3
+            walk t.value_array[2]
+          return
+        walk fn_decl_arg_list
+      ret.arg_list = arg_list
+      ret
+      
     when "return"
       ret = new ast.Ret
       if root.value_array[1]
@@ -372,12 +386,19 @@ class Ti_context
         t.type
       
       when "Fn_decl"
+        ctx.var_hash[t.name] = t.type
         ctx_nest = ctx.mk_nest()
         for name,k in t.arg_name_list
           type = t.type.nest_list[k+1]
           ctx_nest.var_hash[name] = type
         walk t.scope, ctx_nest
         t.type
+      
+      when "Fn_call"
+        root_type = walk t.fn, ctx
+        for arg in t.arg_list
+          walk arg, ctx
+        t.type = root_type.nest_list[0]
       
       when "Ret"
         walk t.t, ctx if t.t
@@ -399,6 +420,7 @@ class Ti_context
         t.type
       else
         ### !pragma coverage-skip-block ###
+        p t
         throw new Error "unknown node '#{t.constructor.name}'"
   walk ast_tree, new Ti_context
   
