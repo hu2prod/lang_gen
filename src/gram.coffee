@@ -491,7 +491,7 @@ module.exports = (col)->
     ret.compile_fn = ()->
       ret.gram_list = []
       ret.gram_list.push '''
-        q('lvalue', '#rvalue . #tok_identifier')          .mx("ult=field_access ti=macro")
+        q('lvalue', '#rvalue . #tok_identifier')          .mx("priority=#{base_priority} ult=field_access ti=macro").strict("$1.priority==#{base_priority}")
         
       '''#'
       return
@@ -503,7 +503,7 @@ module.exports = (col)->
       ret.gram_list.push '''
         q('fn_call_arg_list', '#rvalue')
         q('fn_call_arg_list', '#rvalue , #fn_call_arg_list')
-        q('rvalue', '#rvalue ( #fn_call_arg_list? )').mx('ult=fn_call')
+        q('rvalue', '#rvalue ( #fn_call_arg_list? )')     .mx("priority=#{base_priority} ult=fn_call").strict("$1.priority==#{base_priority}")
         
       '''#'
       

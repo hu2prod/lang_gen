@@ -5,6 +5,7 @@ module.exports = (col)->
   bp = col.autogen 'tok_main', /^tok_main$/, (ret)->
     ret.hash.tab_to_2space= false
     ret.hash.dedent_fix   = true
+    ret.hash.remove_start_eol = true
     ret.hash.remove_end_eol = true
     ret.hash.empty_fix    = true
     ret.compile_fn = ()->
@@ -47,6 +48,10 @@ module.exports = (col)->
       if ret.hash.dedent_fix
         pre_jl.push '''
           str += "\\n" # dedent fix
+          '''
+      if ret.hash.remove_start_eol
+        pre_jl.push '''
+          str = str.replace(/^\\s+/, '')
           '''
       if ret.hash.remove_end_eol
         post_jl.push """

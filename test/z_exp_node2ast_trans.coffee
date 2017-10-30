@@ -23,6 +23,9 @@ describe 'exp_node2ast_trans section', ()->
     it '1', ()->
       assert.equal run("1"), "1"
     
+    it '\\n1', ()->
+      assert.equal run("\n1"), "1"
+    
     it '1+2', ()->
       assert.equal run("1+2"), "(1 + 2)"
     
@@ -156,6 +159,15 @@ describe 'exp_node2ast_trans section', ()->
         (a).a
         """
     
+    it 'var a : struct{a: int};a.a', ()->
+      assert.equal run("""
+        var a : struct{a: int}
+        var b : int
+        b = a.a
+        """), """
+        (b = (a).a)
+        """
+    
     describe 'throws', ()->
       it 'var a : struct{a: int};a.b', ()->
         assert.throws ()-> assert.equal run("""
@@ -229,6 +241,18 @@ describe 'exp_node2ast_trans section', ()->
           b = (a, c)->
             
           (b)(1, 2)
+          """
+      
+      it 'ret assign', ()->
+        assert.equal run("""
+          b():int ->
+            
+          var a : int
+          a = b()
+          """), """
+          b = ()->
+            
+          (a = (b)())
           """
       
     describe 'fn return', ()->
