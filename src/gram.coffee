@@ -162,8 +162,6 @@ module.exports = (col)->
     ret.hash.extra_list = [] # если надо добавить какой-то отдельный оператор
 
     ret.hash.priority_hash =
-      '='  : 3
-      
       '//' : 4
       '%%' : 4
       '**' : 4
@@ -199,6 +197,8 @@ module.exports = (col)->
       'and': 11
       'or' : 11
       'xor': 11
+      
+      '='  : 12
     
     ret.hash.l_assoc_hash =
       '**' : true
