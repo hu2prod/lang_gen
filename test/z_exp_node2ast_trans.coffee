@@ -189,6 +189,15 @@ describe 'exp_node2ast_trans section', ()->
           a.b
           """)
   
+  describe 'loop', ()->
+    it 'loop break', ()->
+      assert.equal run("""
+        loop
+          break
+        """), """
+        loop
+          break
+        """
   describe 'fn_decl', ()->
     it 'a():void->', ()->
       assert.equal run("a():void->"), "a = ()->\n  "

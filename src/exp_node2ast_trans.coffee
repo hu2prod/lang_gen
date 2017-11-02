@@ -83,6 +83,13 @@ macro_fn_map =
     ret.cond= gen condition
     ret.t   = gen block
     ret
+  'loop' : (condition, block)->
+    if condition
+      throw new Error "macro if should not have condition"
+    ret = new ast.Loop
+    ret.scope= gen block
+    ret
+
 
 fix_iterator = (t)->
   # hack. В идеале должен быть lvalue
@@ -126,6 +133,10 @@ fix_iterator = (t)->
         ret.val = root.value_view
         ret.type = new Type "bool"
         ret
+      else if root.value_view == "continue"
+        new ast.Continue
+      else if root.value_view == "break"
+        new ast.Break
       else
         ret = new ast.Var
         ret.name = root.value_view
@@ -205,7 +216,7 @@ fix_iterator = (t)->
       
       ret.scope = gen seek_token 'block', root
       ret
-    
+
     when "fn_decl"
       ret = new ast.Fn_decl
       if name = seek_token 'tok_identifier', root
@@ -386,6 +397,10 @@ class Ti_context
           throw new Error "unknown un_op=#{t.op} a=#{a}"
         t.type
       
+      when "Loop"
+        walk t.scope, ctx.mk_nest()
+        null
+      
       when "Fn_decl"
         ctx.var_hash[t.name] = t.type
         ctx_nest = ctx.mk_nest()
@@ -400,6 +415,9 @@ class Ti_context
         for arg in t.arg_list
           walk arg, ctx
         t.type = root_type.nest_list[0]
+      
+      when "Continue", "Break"
+        null
       
       when "Ret"
         walk t.t, ctx if t.t
