@@ -343,6 +343,16 @@ class Ti_context
           continue if tuple[1] != b
           found = true
           t.type = new Type tuple[2]
+        
+        # extra cases
+        if !found
+          # may produce invalid result
+          if t.op == 'ASSIGN'
+            t.type = t.a.type
+            found = true
+          else if t.op in ['EQ', 'NE']
+            t.type = new Type 'bool'
+            found = true
         if !found
           throw new Error "unknown bin_op=#{t.op} a=#{a} b=#{b}"
         t.type

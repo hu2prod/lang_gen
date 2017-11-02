@@ -498,6 +498,32 @@ describe 'exp_node2ast_trans section', ()->
           var a : C2
           """)
     
+    it 'class C1;var a : C1;var b : C1;a = b', ()->
+      assert.equal run("""
+        class C1
+        var a : C1
+        var b : C1
+        a = b
+        """), """
+        class C1
+          
+        
+        (a = b)
+        """
+    
+    it 'class C1;var a : C1;var b : C1;a == b', ()->
+      assert.equal run("""
+        class C1
+        var a : C1
+        var b : C1
+        a == b
+        """), """
+        class C1
+          
+        
+        (a == b)
+        """
+    
     describe 'field_access', ()->
       it 'class C1 var a: int;var a : C1;a.a', ()->
         assert.equal run("""
