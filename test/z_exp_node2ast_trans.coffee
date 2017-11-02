@@ -174,6 +174,14 @@ describe 'exp_node2ast_trans section', ()->
         (b = (a).a)
         """
     
+    it 'var a : array<int>;a.push(1)', ()->
+      assert.equal run("""
+        var a : array<int>
+        a.push(1)
+        """), """
+        ((a).push)(1)
+        """
+    
     describe 'throws', ()->
       it 'var a : struct{a: int};a.b', ()->
         assert.throws ()-> assert.equal run("""

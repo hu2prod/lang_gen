@@ -278,8 +278,8 @@ class Ti_context
   var_hash  : {}
   type_hash : {}
   constructor:()->
-    @var_hash = {}
-    @type_hash= {}
+    @var_hash = ast.default_var_hash_gen() # на самом деле ничего не даст т.к. уже есть workaround для true false
+    @type_hash= ast.default_type_hash_gen()
   
   mk_nest : ()->
     ret = new Ti_context
@@ -346,6 +346,7 @@ class Ti_context
         
         if !field_type = field_hash[t.name]
           throw new Error "unknown field. '#{t.name}' at type '#{root_type}'. Allowed fields [#{Object.keys(field_hash).join ', '}]"
+        field_type = ast.type_actualize field_type, t.t.type
         t.type = field_type
         t.type
       
