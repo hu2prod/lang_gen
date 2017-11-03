@@ -357,6 +357,12 @@ module.exports = (col)->
     
     ret
   
+  bp = col.autogen 'tok_index_access', /^tok_index_access$/, (ret)->
+    ret.hash.require_list = ['tok_bracket_square']
+    ret.compile_fn = ()->
+      return
+    ret
+  
   bp = col.autogen 'tok_inline_comment', /^tok_inline_comment$/, (ret)->
     ret.hash.delimiter = "#"
     ret.compile_fn = ()->

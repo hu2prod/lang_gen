@@ -358,6 +358,16 @@ module.exports = (col)->
     
     ret
   
+  bp = col.autogen 'gram_index_access', /^gram_index_access$/, (ret)->
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      ret.gram_list.push '''
+        q("lvalue",  "#lvalue [ #rvalue ]")               .mx("priority=#{base_priority} ult=index_access ti=index_access")
+        
+      '''
+      
+    ret
+  
   bp = col.autogen 'gram_inline_comment', /^gram_inline_comment$/, (ret)->
     ret
   

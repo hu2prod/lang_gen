@@ -66,6 +66,19 @@ describe 'exp_node2ast_trans section', ()->
     it 'var a : int; a = 1 + 1', ()->
       assert.equal run("var a:int\na = 1 + 1"), "(a = (1 + 1))"
     
+    it 'var a : string; a[1]', ()->
+      assert.equal run("var a:string\na[1]"), "(a)[1]"
+    
+    it 'var a : array<int>; a[1]', ()->
+      assert.equal run("var a:array<int>\na[1]"), "(a)[1]"
+    
+    it 'var a : hash<int>;var b:string; a[b]', ()->
+      assert.equal run("""
+        var a:hash<int>
+        var b:string
+        a[b]
+        """), "(a)[b]"
+    
     # not properly validated
     describe 'throws', ()->
       it 'a', ()->

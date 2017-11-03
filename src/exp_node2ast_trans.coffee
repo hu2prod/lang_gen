@@ -182,6 +182,13 @@ fix_iterator = (t)->
       ret.name = root.value_array[2].value
       ret
     
+    when "index_access"
+      ret = new ast.Bin_op
+      ret.op = 'INDEX_ACCESS'
+      ret.a    = gen root.value_array[0]
+      ret.b    = gen root.value_array[2]
+      ret
+    
     when "macro"
       macro_name = root.value_array[0].value
       condition = seek_token 'rvalue', root
@@ -334,15 +341,14 @@ class Ti_context
         list = ast.bin_op_ret_type_hash_list[t.op]
         a = walk(t.a, ctx).toString()
         b = walk(t.b, ctx).toString()
-        if !list
-          ### !pragma coverage-skip-block ###
-          throw new Error "unknown bin_op=#{t.op}"
+        
         found = false
-        for tuple in list
-          continue if tuple[0] != a
-          continue if tuple[1] != b
-          found = true
-          t.type = new Type tuple[2]
+        if list
+          for tuple in list
+            continue if tuple[0] != a
+            continue if tuple[1] != b
+            found = true
+            t.type = new Type tuple[2]
         
         # extra cases
         if !found
@@ -353,6 +359,17 @@ class Ti_context
           else if t.op in ['EQ', 'NE']
             t.type = new Type 'bool'
             found = true
+          else if t.op == 'INDEX_ACCESS'
+            switch t.a.type.main
+              when 'string'
+                t.type = new Type 'string'
+                found = true
+              when 'array'
+                t.type = t.a.type.nest_list[0]
+                found = true
+              when 'hash'
+                t.type = t.a.type.nest_list[0]
+                found = true
         if !found
           throw new Error "unknown bin_op=#{t.op} a=#{a} b=#{b}"
         t.type
