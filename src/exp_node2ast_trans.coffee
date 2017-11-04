@@ -288,9 +288,9 @@ fix_iterator = (t)->
     when "require"
       # HACK WAY to parse single and double quote
       loc_ast_list = opt.require eval root.value_array[1].value
-      ret = new ast.Scope
+      ret = []
       for loc_ast in loc_ast_list
-        ret.list.push gen loc_ast, opt
+        ret.push gen loc_ast, opt
       ret
     
     else
@@ -330,8 +330,16 @@ class Ti_context
     switch t.constructor.name
       when "Scope"
         ctx_nest = ctx.mk_nest()
+        rebuild_list = []
         for v in t.list
+          if v instanceof Array
+            for v2 in v
+              walk v2, ctx_nest
+              rebuild_list.push v2
+            continue
           walk v, ctx_nest
+          rebuild_list.push v
+        t.list = rebuild_list
         null
       
       when "Var_decl"
