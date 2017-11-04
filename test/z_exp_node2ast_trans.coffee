@@ -15,7 +15,7 @@ describe 'exp_node2ast_trans section', ()->
         # MOCK as eval (for simplier testing)
         tok1 = _tokenize path
         ast1 = _parse tok1, mode_full:true
-        ast1[0]
+        [ast1[0]]
     ast_g.validate()
     coffee_gen ast_g
   

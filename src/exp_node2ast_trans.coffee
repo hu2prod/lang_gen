@@ -287,8 +287,10 @@ fix_iterator = (t)->
     
     when "require"
       # HACK WAY to parse single and double quote
-      loc_ast = opt.require eval root.value_array[1].value
-      ret = gen loc_ast, opt
+      loc_ast_list = opt.require eval root.value_array[1].value
+      ret = new ast.Scope
+      for loc_ast in loc_ast_list
+        ret.list.push gen loc_ast, opt
       ret
     
     else
