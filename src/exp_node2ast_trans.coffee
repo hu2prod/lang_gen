@@ -290,7 +290,8 @@ fix_iterator = (t)->
       loc_ast_list = opt.require eval root.value_array[1].value
       ret = []
       for loc_ast in loc_ast_list
-        ret.push gen loc_ast, opt
+        loc_scope = gen loc_ast, opt
+        ret.append loc_scope.list
       ret
     
     else
