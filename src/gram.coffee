@@ -558,6 +558,31 @@ module.exports = (col)->
       return
     ret
   
+  bp = col.autogen 'gram_require', /^gram_require$/, (ret)->
+    # ret.hash.require_list = ['gram_const_string']
+    ret.hash.single_quote = true
+    ret.hash.double_quote = true
+    ret.hash.single_heredoc = false
+    ret.hash.double_heredoc = false
+    ret.hash.backtick_quote = false
+    ret.hash.coffee_interpolation = false
+    
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      if ret.hash.single_quote
+        ret.gram_list.push '''
+          q('stmt', 'require #tok_string_sq')                .mx('ult=require')
+          
+        '''#'
+      if ret.hash.double_quote
+        ret.gram_list.push '''
+          q('stmt', 'require #tok_string_dq')                .mx('ult=require')
+          
+        '''#'
+      
+      return
+    ret
+  
   # todo string (single/double)
   # todo string interpolate
   # todo multiline string+interpolate

@@ -10,7 +10,12 @@ describe 'exp_node2ast_trans section', ()->
   run = (str)->
     tok = _tokenize str
     ast = _parse tok, mode_full:true
-    ast_g= ast_gen ast[0]
+    ast_g= ast_gen ast[0],
+      require : (path)->
+        # MOCK as eval (for simplier testing)
+        tok1 = _tokenize path
+        ast1 = _parse tok1, mode_full:true
+        ast1[0]
     ast_g.validate()
     coffee_gen ast_g
   
@@ -587,3 +592,9 @@ describe 'exp_node2ast_trans section', ()->
             var a : C1
             a.b
             """)
+  
+  describe 'require', ()->
+    it 'class a', ()->
+      assert.equal run("require '1'"), "1"
+    
+  

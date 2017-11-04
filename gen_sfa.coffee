@@ -23,6 +23,7 @@ main.inject ()->
   col.gen 'tok_index_access'
   col.gen 'tok_int_family'
   col.gen 'tok_float_family'
+  col.gen 'tok_string'
   col.gen 'tok_var_decl'
   col.gen 'tok_fn_decl'
   col.gen 'tok_inline_comment'
@@ -59,6 +60,7 @@ main.inject ()->
   col.gen 'gram_for_col'
   col.gen 'gram_fn_decl'
   col.gen 'gram_class_decl'
+  col.gen 'gram_require'
 
 main.compile()
 fs.writeFileSync "gram.gen.coffee", main.hash.cont

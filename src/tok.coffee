@@ -426,6 +426,46 @@ module.exports = (col)->
       return
     ret
   
+  bp = col.autogen 'tok_string', /^tok_string$/, (ret)->
+    ret.hash.single_quote = true
+    ret.hash.double_quote = true
+    ret.hash.single_heredoc = false
+    ret.hash.double_heredoc = false
+    ret.hash.backtick_quote = false
+    ret.hash.coffee_interpolation = false
+    ret.compile_fn = ()->
+      ret.parser_list = []
+      string_regex_craft = ///
+          \\[^xu] |               # x and u are case sensitive while hex letters are not
+          \\x[0-9a-fA-F]{2} |     # Hexadecimal escape sequence
+          \\u(?:
+            [0-9a-fA-F]{4} |      # Unicode escape sequence
+            \{(?:
+              [0-9a-fA-F]{1,5} |  # Unicode code point escapes from 0 to FFFFF
+              10[0-9a-fA-F]{4}    # Unicode code point escapes from 100000 to 10FFFF
+            )\}
+          )
+      ///.toString().replace(/\//g,'')
+      single_quoted_regex_craft = ///
+        (?:
+          [^\\] |
+          #{string_regex_craft}
+        )*?
+      ///.toString().replace(/\//g,'')
+      double_quoted_regexp_craft = ///
+        (?:
+          [^\\#] |
+          \#(?!\{) |
+          #{string_regex_craft}
+        )*?
+      ///.toString().replace(/\//g,'')
+      if ret.hash.single_quote
+        ret.parser_list.push "new Token_parser 'tok_string_sq', /^'#{single_quoted_regex_craft}'/"
+      if ret.hash.double_quote
+        ret.parser_list.push "new Token_parser 'tok_string_dq', /^:\"#{double_quoted_regexp_craft}\"/"
+      return
+    ret
+  
   # todo string (single/double)
   # todo string interpolate
   # todo multiline string+interpolate

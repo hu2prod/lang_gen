@@ -98,13 +98,13 @@ fix_iterator = (t)->
   t.value_view = t.value
   t
 
-@_gen = gen = (root)->
+@_gen = gen = (root, opt={})->
   switch root.mx_hash.ult
     when "deep_scope"
       ret = new ast.Scope
       for v in root.value_array
         continue if v.mx_hash.hash_key == 'eol'
-        loc = gen v
+        loc = gen v, opt
         continue if !loc
         if loc instanceof ast.Scope
           ret.list.append loc.list
@@ -113,7 +113,7 @@ fix_iterator = (t)->
       ret
     
     when "block"
-      gen root.value_array[1]
+      gen root.value_array[1], opt
     
     when "comment"
       null
@@ -125,7 +125,7 @@ fix_iterator = (t)->
       ret
     
     when "deep"
-      gen root.value_array[0]
+      gen root.value_array[0], opt
     
     when "id"
       if root.value_view in ["true", "false"]
@@ -154,8 +154,8 @@ fix_iterator = (t)->
       if !ret.op
         ### !pragma coverage-skip-block ###
         throw new Error "unknown bin_op=#{op}"
-      ret.a = gen root.value_array[0]
-      ret.b = gen root.value_array[2]
+      ret.a = gen root.value_array[0], opt
+      ret.b = gen root.value_array[2], opt
       ret
     
     when "pre_op"
@@ -164,7 +164,7 @@ fix_iterator = (t)->
       if !ret.op
         ### !pragma coverage-skip-block ###
         throw new Error "unknown pre_op=#{op}"
-      ret.a = gen root.value_array[1]
+      ret.a = gen root.value_array[1], opt
       ret
     
     when "post_op"
@@ -173,20 +173,20 @@ fix_iterator = (t)->
       if !ret.op
         ### !pragma coverage-skip-block ###
         throw new Error "unknown post_op=#{op}"
-      ret.a = gen root.value_array[0]
+      ret.a = gen root.value_array[0], opt
       ret
     
     when "field_access"
       ret = new ast.Field_access
-      ret.t    = gen root.value_array[0]
+      ret.t    = gen root.value_array[0], opt
       ret.name = root.value_array[2].value
       ret
     
     when "index_access"
       ret = new ast.Bin_op
       ret.op = 'INDEX_ACCESS'
-      ret.a    = gen root.value_array[0]
-      ret.b    = gen root.value_array[2]
+      ret.a    = gen root.value_array[0], opt
+      ret.b    = gen root.value_array[2], opt
       ret
     
     when "macro"
@@ -201,13 +201,13 @@ fix_iterator = (t)->
       ret = new ast.For_range
       ret.exclusive = seek_token('ranger', root).value_view == '...'
       [_for_skip, i] = seek_token_list 'tok_identifier', root
-      ret.i = gen fix_iterator i
+      ret.i = gen fix_iterator i, opt
       
       [a, b, by_node] = seek_token_list 'rvalue', root
-      ret.a = gen a
-      ret.b = gen b
-      ret.step = gen by_node if by_node
-      ret.scope = gen seek_token 'block', root
+      ret.a = gen a, opt
+      ret.b = gen b, opt
+      ret.step = gen by_node, opt if by_node
+      ret.scope = gen seek_token('block', root), opt
       ret
     
     when "for_col"
@@ -217,11 +217,11 @@ fix_iterator = (t)->
         v = k
         k = null
       
-      ret.k = gen fix_iterator k if k
-      ret.v = gen fix_iterator v
-      ret.t = gen seek_token 'rvalue', root
+      ret.k = gen fix_iterator k, opt if k
+      ret.v = gen fix_iterator v, opt
+      ret.t = gen seek_token('rvalue', root), opt
       
-      ret.scope = gen seek_token 'block', root
+      ret.scope = gen seek_token('block', root), opt
       ret
 
     when "fn_decl"
@@ -252,17 +252,17 @@ fix_iterator = (t)->
       scope ?= seek_token 'block', root
       scope ?= seek_token 'rvalue', root
       if scope
-        ret.scope = gen scope
+        ret.scope = gen scope, opt
       
       ret
     
     when "fn_call"
       ret = new ast.Fn_call
-      ret.fn = gen root.value_array[0]
+      ret.fn = gen root.value_array[0], opt
       arg_list = []
       if fn_decl_arg_list = seek_token 'fn_call_arg_list', root
         walk = (t)->
-          arg_list.push gen t.value_array[0]
+          arg_list.push gen t.value_array[0], opt
           if t.value_array.length == 3
             walk t.value_array[2]
           return
@@ -273,7 +273,7 @@ fix_iterator = (t)->
     when "return"
       ret = new ast.Ret
       if root.value_array[1]
-        ret.t = gen root.value_array[1]
+        ret.t = gen root.value_array[1], opt
       ret
     
     when "class_decl"
@@ -281,10 +281,15 @@ fix_iterator = (t)->
       ret.name = root.value_array[1].value
       
       if scope = seek_token 'block', root
-        ret.scope = gen scope
+        ret.scope = gen scope, opt
       
       ret
-      
+    
+    when "require"
+      # HACK WAY to parse single and double quote
+      loc_ast = opt.require eval root.value_array[1].value
+      ret = gen loc_ast, opt
+      ret
     
     else
       ### !pragma coverage-skip-block ###
@@ -316,8 +321,8 @@ class Ti_context
       return @parent.check_type _type
     throw new Error "can't find type '#{_type}'"
   
-@gen = (_root)->
-  ast_tree = gen _root
+@gen = (_root, opt)->
+  ast_tree = gen _root, opt
   
   walk = (t, ctx)->
     switch t.constructor.name
