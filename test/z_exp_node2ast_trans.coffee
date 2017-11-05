@@ -173,6 +173,16 @@ describe 'exp_node2ast_trans section', ()->
           wtf 1
             2
           """)
+      it 'if', ()->
+        assert.throws ()-> run("""
+          if
+            2
+          """)
+      it 'loop', ()->
+        assert.throws ()-> run("""
+          loop 1
+            2
+          """)
   
   describe 'field_access', ()->
     it 'var a : struct{a: int};a.a', ()->
@@ -216,6 +226,18 @@ describe 'exp_node2ast_trans section', ()->
         loop
           break
         """
+    
+    it 'loop break continue', ()->
+      assert.equal run("""
+        loop
+          break
+          continue
+        """), """
+        loop
+          break
+          continue
+        """
+  
   describe 'fn_decl', ()->
     it 'a():void->', ()->
       assert.equal run("a():void->"), "a = ()->\n  "
@@ -569,6 +591,21 @@ describe 'exp_node2ast_trans section', ()->
               
           
           ((a).a)()
+          """
+      
+      it 'constructor', ()->
+        assert.equal run("""
+          class C1
+            a():void->
+              
+          var a : C1
+          a.new()
+          """), """
+          class C1
+            a : ()->
+              
+          
+          (a) = new C1
           """
       
       it 'class C1 var a: int;b():void -> this.a', ()->

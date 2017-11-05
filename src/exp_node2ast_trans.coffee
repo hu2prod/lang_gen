@@ -398,7 +398,10 @@ class Ti_context
           class_decl = ctx.check_type root_type.main
           field_hash = class_decl._prepared_field2type
         
-        if !field_type = field_hash[t.name]
+        if t.name == 'new'
+          field_type = new Type 'function'
+          field_type.nest_list[0] = t.t.type
+        else if !field_type = field_hash[t.name]
           throw new Error "unknown field. '#{t.name}' at type '#{root_type}'. Allowed fields [#{Object.keys(field_hash).join ', '}]"
         field_type = ast.type_actualize field_type, t.t.type
         t.type = field_type
