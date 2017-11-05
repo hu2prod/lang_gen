@@ -593,6 +593,27 @@ describe 'exp_node2ast_trans section', ()->
           ((a).a)()
           """
       
+      describe 'array', ()->
+        it 'constructor', ()->
+          assert.equal run("""
+            var a : array<int>
+            a.new()
+            """), """
+            (a) = []
+            """
+        
+        it 'sort_i', ()->
+          assert.equal run("""
+            var a : array<int>
+            fn(a:int,b:int):int->
+              return a-b
+            a.sort_i(fn)
+            """), """
+            fn = (a, b)->
+              return ((a - b))
+            ((a).sort)(fn)
+            """
+      
       it 'constructor', ()->
         assert.equal run("""
           class C1
