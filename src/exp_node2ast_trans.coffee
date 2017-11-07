@@ -90,8 +90,8 @@ gen = null
     ret.scope= gen block
     ret
   'switch' : (condition, block)->
-    if condition
-      throw new Error "macro switch should not have condition"
+    if !condition
+      throw new Error "macro switch should have condition"
     ret = new ast.Switch
     ret.cond= gen condition
     list = gen block
@@ -101,8 +101,8 @@ gen = null
       ret.hash[v.cond.val] = ret.t
     ret
   'when' : (condition, block)->
-    if condition
-      throw new Error "macro when should not have condition"
+    if !condition
+      throw new Error "macro when should have condition"
     ret = new ast.If
     ret.cond= gen condition
     ret.t   = gen block
