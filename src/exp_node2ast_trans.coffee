@@ -85,10 +85,29 @@ gen = null
     ret
   'loop' : (condition, block)->
     if condition
-      throw new Error "macro if should not have condition"
+      throw new Error "macro loop should not have condition"
     ret = new ast.Loop
     ret.scope= gen block
     ret
+  'switch' : (condition, block)->
+    if condition
+      throw new Error "macro switch should not have condition"
+    ret = new ast.Switch
+    ret.cond= gen condition
+    list = gen block
+    for v in list
+      unless v.cond instanceof ast.Const
+        throw new Error "when cond should be const"
+      ret.hash[v.cond.val] = ret.t
+    ret
+  'when' : (condition, block)->
+    if condition
+      throw new Error "macro when should not have condition"
+    ret = new ast.If
+    ret.cond= gen condition
+    ret.t   = gen block
+    ret
+    
 
 
 fix_iterator = (t)->
