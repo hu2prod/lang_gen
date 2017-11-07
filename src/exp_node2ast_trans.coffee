@@ -75,7 +75,7 @@ seek_token_list = (name, t)->
   list
 gen = null
 
-macro_fn_map =
+@macro_fn_map = macro_fn_map =
   'if' : (condition, block)->
     if !condition
       throw new Error "macro if should have condition"
