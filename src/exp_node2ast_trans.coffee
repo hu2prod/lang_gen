@@ -425,6 +425,13 @@ class Ti_context
         walk(t.f, ctx.mk_nest())
         null
       
+      when "Switch"
+        walk(t.cond, ctx)
+        for k,v of t.hash
+          walk(v, ctx.mk_nest())
+        walk(t.f, ctx.mk_nest()) if t.f
+        null
+      
       when "For_range"
         walk(t.i, ctx)
         walk(t.a, ctx)
