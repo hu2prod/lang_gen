@@ -94,8 +94,8 @@ gen = null
       throw new Error "macro switch should have condition"
     ret = new ast.Switch
     ret.cond= gen condition
-    list = gen block
-    for v in list
+    scope = gen block
+    for v in scope.list
       unless v.cond instanceof ast.Const
         throw new Error "when cond should be const"
       ret.hash[v.cond.val] = ret.t
