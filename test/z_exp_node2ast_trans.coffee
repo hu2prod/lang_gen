@@ -101,6 +101,13 @@ describe 'exp_node2ast_trans section', ()->
         if 1
           2
         """), t
+    it 'if 1 2 else 3', ()->
+      assert.equal run(t = """
+        if 1
+          2
+        else
+          3
+        """), t
     
     it 'for i in [1 .. 10] 0', ()->
       assert.equal run(t = """

@@ -83,6 +83,14 @@ gen = null
     ret.cond= gen condition
     ret.t   = gen block
     ret
+  'else' : (condition, block)->
+    # HACKER WAY
+    if condition
+      throw new Error "macro else should not have condition"
+    ret = new ast.If
+    ret.is_else = true
+    ret.t   = gen block
+    ret
   'loop' : (condition, block)->
     if condition
       throw new Error "macro loop should not have condition"
@@ -98,7 +106,7 @@ gen = null
     for v in scope.list
       unless v.cond instanceof ast.Const
         throw new Error "when cond should be const"
-      ret.hash[v.cond.val] = ret.t
+      ret.hash[v.cond.val] = v.t
     ret
   'when' : (condition, block)->
     if !condition
@@ -351,8 +359,22 @@ class Ti_context
     switch t.constructor.name
       when "Scope"
         ctx_nest = ctx.mk_nest()
+        prev = null
+        remove_list = []
         for v in t.list
+          if v.is_else
+            if !prev
+              throw new Error "Can't bind else to null"
+            unless prev.constructor.name in ['If', 'Switch']
+              throw new Error "Can't bind else to #{prev.constructor.name}"
+            remove_list.push v
+            prev.f = v.t
+            walk v.t, ctx_nest
+            continue
           walk v, ctx_nest
+          prev = v
+        for v in remove_list
+          t.list.remove v
         null
       
       when "Var_decl"
