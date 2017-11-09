@@ -37,6 +37,9 @@ describe 'exp_node2ast_trans section', ()->
     it '1+2*3', ()->
       assert.equal run("1+2*3"), "(1 + (2 * 3))"
     
+    it '(1+2)*3', ()->
+      assert.equal run("(1+2)*3"), "((1 + 2) * 3)"
+    
     it '1.0', ()->
       assert.equal run("1.0"), "1.0"
     
@@ -51,6 +54,9 @@ describe 'exp_node2ast_trans section', ()->
     
     it 'a++', ()->
       assert.equal run("var a:int\na++"), "(a)++"
+    
+    it 'a', ()->
+      assert.equal run("var a:int\n(a)"), "a"
     
     it '#a', ()->
       assert.equal run("#a"), ""

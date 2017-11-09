@@ -367,6 +367,15 @@ module.exports = (col)->
       '''
       
     ret
+  bp = col.autogen 'gram_bracket', /^gram_bracket$/, (ret)->
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      ret.gram_list.push '''
+        q("rvalue",  "( #rvalue )")                       .mx("priority=#{base_priority} ult=bracket ti=pass")
+        
+      '''
+      
+    ret
   
   bp = col.autogen 'gram_inline_comment', /^gram_inline_comment$/, (ret)->
     ret

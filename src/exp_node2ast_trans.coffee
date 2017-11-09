@@ -216,6 +216,9 @@ fix_iterator = (t)->
       ret.b    = gen root.value_array[2], opt
       ret
     
+    when "bracket"
+      gen root.value_array[1], opt
+    
     when "macro"
       macro_name = root.value_array[0].value
       condition = seek_token 'rvalue', root
