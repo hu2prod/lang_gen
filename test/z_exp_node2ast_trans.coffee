@@ -80,6 +80,13 @@ describe 'exp_node2ast_trans section', ()->
     it 'var a : string; a[1]', ()->
       assert.equal run("var a:string\na[1]"), "(a)[1]"
     
+    it 'var a : string; var b : string; a[1]', ()->
+      assert.equal run("""
+        var a:string
+        var b:string
+        b = a[1]
+        """), "(b = (a)[1])"
+    
     it 'var a : array<int>; a[1]', ()->
       assert.equal run("var a:array<int>\na[1]"), "(a)[1]"
     

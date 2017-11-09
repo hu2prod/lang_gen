@@ -362,9 +362,9 @@ module.exports = (col)->
     ret.compile_fn = ()->
       ret.gram_list = []
       # NOTE мы можем так сделать поскольку у нас не выделена операция assign, и она с rvalue
-      # q("lvalue",  "#lvalue [ #rvalue ]")               .mx("priority=#{base_priority} ult=index_access ti=index_access")
+      # q("lvalue",  "#lvalue [ #rvalue ]")               .mx("priority=#{base_priority} ult=index_access ti=index_access").strict("$1.priority==#{base_priority}")
       ret.gram_list.push '''
-        q("rvalue",  "#rvalue [ #rvalue ]")               .mx("priority=#{base_priority} ult=index_access ti=index_access")
+        q("rvalue",  "#rvalue [ #rvalue ]")               .mx("priority=#{base_priority} ult=index_access ti=index_access").strict("$1.priority==#{base_priority}")
         
       '''
       
