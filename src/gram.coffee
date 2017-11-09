@@ -361,8 +361,10 @@ module.exports = (col)->
   bp = col.autogen 'gram_index_access', /^gram_index_access$/, (ret)->
     ret.compile_fn = ()->
       ret.gram_list = []
+      # NOTE мы можем так сделать поскольку у нас не выделена операция assign, и она с rvalue
+      # q("lvalue",  "#lvalue [ #rvalue ]")               .mx("priority=#{base_priority} ult=index_access ti=index_access")
       ret.gram_list.push '''
-        q("lvalue",  "#lvalue [ #rvalue ]")               .mx("priority=#{base_priority} ult=index_access ti=index_access")
+        q("rvalue",  "#rvalue [ #rvalue ]")               .mx("priority=#{base_priority} ult=index_access ti=index_access")
         
       '''
       

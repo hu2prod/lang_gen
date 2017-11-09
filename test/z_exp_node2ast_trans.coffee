@@ -351,6 +351,17 @@ describe 'exp_node2ast_trans section', ()->
           b = ()->
             return (1)
           """
+      
+      it 'fn call with []', ()->
+        assert.equal run("""
+          b():array<int> ->
+            
+          b()[0]
+          """), """
+          b = ()->
+            
+          ((b)())[0]
+          """
       describe 'throws', ()->
         it 'void return but decl int', ()->
           assert.throws ()-> run("""
