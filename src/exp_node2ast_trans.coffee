@@ -500,6 +500,7 @@ class Ti_context
         null
       
       when "While"
+        walk t.cond, ctx.mk_nest()
         walk t.scope, ctx.mk_nest()
         null
       
