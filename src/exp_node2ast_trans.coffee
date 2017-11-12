@@ -97,6 +97,13 @@ gen = null
     ret = new ast.Loop
     ret.scope= gen block
     ret
+  'while' : (condition, block)->
+    if !condition
+      throw new Error "macro while should have condition"
+    ret = new ast.While
+    ret.cond= gen condition
+    ret.scope= gen block
+    ret
   'switch' : (condition, block)->
     if !condition
       throw new Error "macro switch should have condition"
@@ -105,6 +112,7 @@ gen = null
     scope = gen block
     for v in scope.list
       unless v.cond instanceof ast.Const
+        p v.cond
         throw new Error "when cond should be const"
       ret.hash[v.cond.val] = v.t
     ret
@@ -488,6 +496,10 @@ class Ti_context
         t.type
       
       when "Loop"
+        walk t.scope, ctx.mk_nest()
+        null
+      
+      when "While"
         walk t.scope, ctx.mk_nest()
         null
       

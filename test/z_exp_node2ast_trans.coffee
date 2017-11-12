@@ -258,6 +258,33 @@ describe 'exp_node2ast_trans section', ()->
           continue
         """
   
+  describe 'while', ()->
+    it 'while true 1', ()->
+      assert.equal run("""
+        while true
+          1
+        """), """
+        while true
+          1
+        """
+  
+  # switch is NOT working now
+  # describe 'switch', ()->
+  #   it 'switch 1 when 2 3 else 4', ()->
+  #     assert.equal run("""
+  #       switch 1
+  #         when 2
+  #           3
+  #         else
+  #           4
+  #       """), """
+  #       switch 1
+  #         when 2
+  #           3
+  #         else
+  #           4
+  #       """
+  
   describe 'fn_decl', ()->
     it 'a():void->', ()->
       assert.equal run("a():void->"), "a = ()->\n  "
