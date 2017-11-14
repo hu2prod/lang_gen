@@ -325,6 +325,7 @@ module.exports = (col)->
   
   bp = col.autogen 'gram_post_op', /^gram_post_op$/, (ret)->
     ret.hash.inc    = true # ++ --
+    ret.hash.is_not_null = true # ?
     
     ret.hash.ban_list   = [] # если надо убить какой-то отдельный оператор
     ret.hash.extra_list = [] # если надо добавить какой-то отдельный оператор
@@ -334,6 +335,7 @@ module.exports = (col)->
     ret.compile_fn = ()->
       op_list = []
       op_list.append "++ --".split /\s+/g if ret.hash.inc
+      op_list.push "[QUESTION]" if ret.hash.is_not_null
       
       op_list.append ret.hash.extra_list
       for v in ret.hash.ban_list
