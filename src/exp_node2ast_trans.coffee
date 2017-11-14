@@ -432,6 +432,9 @@ class Ti_context
               when 'hash'
                 t.type = t.a.type.nest_list[0]
                 found = true
+              when 'hash_int'
+                t.type = t.a.type.nest_list[0]
+                found = true
         if !found
           throw new Error "unknown bin_op=#{t.op} a=#{a} b=#{b}"
         t.type
