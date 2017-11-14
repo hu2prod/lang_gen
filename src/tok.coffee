@@ -324,6 +324,7 @@ module.exports = (col)->
     ret.hash.not    = true
     ret.hash.new    = true
     ret.hash.delete = true
+    ret.hash.is_not_null = false
     # js/coffee wierd stuff
     ret.hash.void   = false
     ret.hash.typeof = false
@@ -337,6 +338,7 @@ module.exports = (col)->
       op_list.append "++ --".split /\s+/g if ret.hash.inc
       op_list.append "!"    .split /\s+/g if ret.hash.logic
       op_list.append "~"    .split /\s+/g if ret.hash.bit
+      op_list.append "?"    .split /\s+/g if ret.hash.is_not_null
       for v in "not new delete void typeof".split /\s+/g
         op_list.push v if ret.hash[v]
       
