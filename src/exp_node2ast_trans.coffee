@@ -487,7 +487,9 @@ class Ti_context
       when "Un_op"
         list = ast.un_op_ret_type_hash_list[t.op]
         a = walk(t.a, ctx).toString()
-        if !list
+        if t.op == 'IS_NOT_NULL'
+          t.type = new Type 'bool'
+        else if !list
           ### !pragma coverage-skip-block ###
           throw new Error "unknown un_op=#{t.op}"
         found = false
