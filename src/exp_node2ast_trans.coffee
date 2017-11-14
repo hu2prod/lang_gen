@@ -13,6 +13,7 @@ pre_op_map =
 post_op_map =
   '++'  : 'RET_INC'
   '--'  : 'RET_DEC'
+  '?'   : 'IS_NOT_NULL'
   
 
 bin_op_map =
