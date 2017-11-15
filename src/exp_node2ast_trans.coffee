@@ -263,10 +263,12 @@ fix_iterator = (t)->
       ret.scope = gen seek_token('block', root), opt
       ret
 
-    when "fn_decl"
+    when "fn_decl", "cl_decl"
       ret = new ast.Fn_decl
       if name = seek_token 'tok_identifier', root
         ret.name = name.value
+      if root.mx_hash.ult == "cl_decl"
+        ret.is_closure = true
       ret.type = new Type "function"
       
       arg_list = []

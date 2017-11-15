@@ -536,6 +536,7 @@ module.exports = (col)->
   bp = col.autogen 'gram_fn_decl', /^gram_fn_decl$/, (ret)->
     # ret.hash.arrow = true
     ret.hash.fat_arrow = true # LATER
+    ret.hash.closure = false
     ret.hash.require_list = ['gram_type', 'gram_fn_call']
     
     ret.compile_fn = ()->
@@ -551,6 +552,13 @@ module.exports = (col)->
         q('stmt', '#tok_identifier ( #fn_decl_arg_list? ) : #type -> #rvalue').mx('ult=fn_decl')
         
         q('stmt', '#return #rvalue?')                     .mx('ult=return ti=return')
+        
+      '''#'
+      if ret.hash.closure
+        ret.gram_list.push '''
+        q('rvalue', '( #fn_decl_arg_list? ) : #type =>').mx("priority=#{base_priority} ult=cl_decl")
+        q('rvalue', '( #fn_decl_arg_list? ) : #type => #block').mx("priority=#{base_priority} ult=cl_decl eol=1")
+        q('rvalue', '( #fn_decl_arg_list? ) : #type => #rvalue').mx("priority=#{base_priority} ult=cl_decl")
         
       '''#'
       

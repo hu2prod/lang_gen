@@ -712,5 +712,16 @@ describe 'exp_node2ast_trans section', ()->
   describe 'require', ()->
     it 'class a', ()->
       assert.equal run("require '1'"), "1"
-    
+  
+  describe 'closure', ()->
+    it 'var a; a = ():void->', ()->
+      assert.equal run("""
+        var a : function<void>
+        a = ():void=>
+          
+        """), """
+        (a = ()->
+          )
+        """
+  
   
