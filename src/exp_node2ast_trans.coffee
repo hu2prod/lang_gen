@@ -376,6 +376,9 @@ class Ti_context
         prev = null
         remove_list = []
         for v in t.list
+          if v.constructor.name == "Class_decl"
+            ctx_nest.type_hash[v.name] = v
+        for v in t.list
           if v.is_else
             if !prev
               throw new Error "Can't bind else to null"
