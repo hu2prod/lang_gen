@@ -365,7 +365,17 @@ class Ti_context
     if @parent
       return @parent.check_type _type
     throw new Error "can't find type '#{_type}'"
-  
+
+class_prepare = (ctx, t)->
+  ctx.type_hash[t.name] = t
+  for v in t.scope.list
+    switch v.constructor.name
+      when "Var_decl"
+        t._prepared_field2type[v.name] = v.type
+      when "Fn_decl"
+        # BUG внутри scope уже есть this и ему нужен тип...
+        t._prepared_field2type[v.name] = v.type
+  return
 @gen = (_root, opt)->
   ast_tree = gen _root, opt
   
@@ -377,7 +387,7 @@ class Ti_context
         remove_list = []
         for v in t.list
           if v.constructor.name == "Class_decl"
-            ctx_nest.type_hash[v.name] = v
+            class_prepare ctx, v
         for v in t.list
           if v.is_else
             if !prev
@@ -537,14 +547,7 @@ class Ti_context
         null
       
       when "Class_decl"
-        ctx.type_hash[t.name] = t
-        for v in t.scope.list
-          switch v.constructor.name
-            when "Var_decl"
-              t._prepared_field2type[v.name] = v.type
-            when "Fn_decl"
-              # BUG внутри scope уже есть this и ему нужен тип...
-              t._prepared_field2type[v.name] = v.type
+        class_prepare ctx, t
         
         ctx_nest = ctx.mk_nest()
         ctx_nest.var_hash["this"] = new Type t.name
