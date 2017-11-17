@@ -75,12 +75,27 @@ seek_token_list = (name, t)->
     list.push v if v.mx_hash.hash_key == name
   list
 gen = null
+seek_and_set_line_pos = (ret, root)->
+  
+  walk = (root)->
+    if root.line != -1
+      ret.line = root.line
+      ret.pos  = root.pos
+      return true
+    for v in root.value_array
+      return true if walk(v)
+    return false
+  walk root
+  return
+  
 
 @macro_fn_map = macro_fn_map =
   'if' : (condition, block)->
     if !condition
       throw new Error "macro if should have condition"
     ret = new ast.If
+    seek_and_set_line_pos ret, block
+    
     ret.cond= gen condition
     ret.t   = gen block
     ret
@@ -89,6 +104,8 @@ gen = null
     if condition
       throw new Error "macro else should not have condition"
     ret = new ast.If
+    seek_and_set_line_pos ret, block
+    
     ret.is_else = true
     ret.t   = gen block
     ret
@@ -96,12 +113,16 @@ gen = null
     if condition
       throw new Error "macro loop should not have condition"
     ret = new ast.Loop
+    seek_and_set_line_pos ret, block
+    
     ret.scope= gen block
     ret
   'while' : (condition, block)->
     if !condition
       throw new Error "macro while should have condition"
     ret = new ast.While
+    seek_and_set_line_pos ret, block
+    
     ret.cond= gen condition
     ret.scope= gen block
     ret
@@ -109,6 +130,8 @@ gen = null
     if !condition
       throw new Error "macro switch should have condition"
     ret = new ast.Switch
+    seek_and_set_line_pos ret, block
+    
     ret.cond= gen condition
     scope = gen block
     for v in scope.list
@@ -121,6 +144,8 @@ gen = null
     if !condition
       throw new Error "macro when should have condition"
     ret = new ast.If
+    seek_and_set_line_pos ret, block
+    
     ret.cond= gen condition
     ret.t   = gen block
     ret
@@ -138,6 +163,8 @@ fix_iterator = (t)->
   switch root.mx_hash.ult
     when "deep_scope"
       ret = new ast.Scope
+      seek_and_set_line_pos ret, root
+      
       for v in root.value_array
         continue if v.mx_hash.hash_key == 'eol'
         loc = gen v, opt
@@ -156,6 +183,8 @@ fix_iterator = (t)->
     
     when "var_decl"
       ret = new ast.Var_decl
+      seek_and_set_line_pos ret, root
+      
       ret.name = root.value_array[1].value
       ret.type = new Type root.value_array[3].value_view.replace(/\s+/g, '')
       ret
@@ -166,26 +195,40 @@ fix_iterator = (t)->
     when "id"
       if root.value_view in ["true", "false"]
         ret = new ast.Const
+        seek_and_set_line_pos ret, root
+        
         ret.val = root.value_view
         ret.type = new Type "bool"
         ret
       else if root.value_view == "continue"
-        new ast.Continue
+        ret = new ast.Continue
+        seek_and_set_line_pos ret, root
+        
+        ret
       else if root.value_view == "break"
-        new ast.Break
+        ret = new ast.Break
+        seek_and_set_line_pos ret, root
+        
+        ret
       else
         ret = new ast.Var
+        seek_and_set_line_pos ret, root
+        
         ret.name = root.value_view
         ret
     
     when "const"
       ret = new ast.Const
+      seek_and_set_line_pos ret, root
+      
       ret.val = root.value_view
       ret.type = new Type root.mx_hash.type
       ret
     
     when "bin_op"
       ret = new ast.Bin_op
+      seek_and_set_line_pos ret, root
+      
       ret.op = bin_op_map[op = root.value_array[1].value_view]
       if !ret.op
         ### !pragma coverage-skip-block ###
@@ -196,6 +239,8 @@ fix_iterator = (t)->
     
     when "pre_op"
       ret = new ast.Un_op
+      seek_and_set_line_pos ret, root
+      
       ret.op = pre_op_map[op = root.value_array[0].value_view]
       if !ret.op
         ### !pragma coverage-skip-block ###
@@ -205,6 +250,8 @@ fix_iterator = (t)->
     
     when "post_op"
       ret = new ast.Un_op
+      seek_and_set_line_pos ret, root
+      
       ret.op = post_op_map[op = root.value_array[1].value_view]
       if !ret.op
         ### !pragma coverage-skip-block ###
@@ -214,12 +261,16 @@ fix_iterator = (t)->
     
     when "field_access"
       ret = new ast.Field_access
+      seek_and_set_line_pos ret, root
+      
       ret.t    = gen root.value_array[0], opt
       ret.name = root.value_array[2].value
       ret
     
     when "index_access"
       ret = new ast.Bin_op
+      seek_and_set_line_pos ret, root
+      
       ret.op = 'INDEX_ACCESS'
       ret.a    = gen root.value_array[0], opt
       ret.b    = gen root.value_array[2], opt
@@ -238,6 +289,8 @@ fix_iterator = (t)->
     
     when "for_range"
       ret = new ast.For_range
+      seek_and_set_line_pos ret, root
+      
       ret.exclusive = seek_token('ranger', root).value_view == '...'
       [_for_skip, i] = seek_token_list 'tok_identifier', root
       ret.i = gen fix_iterator i, opt
@@ -251,6 +304,8 @@ fix_iterator = (t)->
     
     when "for_col"
       ret = new ast.For_col
+      seek_and_set_line_pos ret, root
+      
       [_for_skip, k, v, _skip_in] = seek_token_list 'tok_identifier', root
       if !_skip_in
         v = k
@@ -265,6 +320,8 @@ fix_iterator = (t)->
 
     when "fn_decl", "cl_decl"
       ret = new ast.Fn_decl
+      seek_and_set_line_pos ret, root
+      
       if name = seek_token 'tok_identifier', root
         ret.name = name.value
       if root.mx_hash.ult == "cl_decl"
@@ -299,6 +356,8 @@ fix_iterator = (t)->
     
     when "fn_call"
       ret = new ast.Fn_call
+      seek_and_set_line_pos ret, root
+      
       ret.fn = gen root.value_array[0], opt
       arg_list = []
       if fn_decl_arg_list = seek_token 'fn_call_arg_list', root
@@ -313,12 +372,16 @@ fix_iterator = (t)->
       
     when "return"
       ret = new ast.Ret
+      seek_and_set_line_pos ret, root
+      
       if root.value_array[1]
         ret.t = gen root.value_array[1], opt
       ret
     
     when "class_decl"
       ret = new ast.Class_decl
+      seek_and_set_line_pos ret, root
+      
       ret.name = root.value_array[1].value
       
       if scope = seek_token 'block', root
@@ -330,6 +393,8 @@ fix_iterator = (t)->
       # HACK WAY to parse single and double quote
       loc_ast_list = opt.require eval root.value_array[1].value
       ret = new ast.Scope
+      seek_and_set_line_pos ret, root
+      
       ret.need_nest = false
       for loc_ast in loc_ast_list
         loc_scope = gen loc_ast, opt
