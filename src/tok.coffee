@@ -100,13 +100,17 @@ module.exports = (col)->
       last_space = 0
       tokenizer = new Tokenizer
       tokenizer.parser_list.push (new Token_parser 'Xdent', /^\\n/, (_this, ret_value, q)->
-        _this.text = _this.text.substr 1 # \n
+        _this.text = _this.text.substr 1 # \\n
+        _this.line++
+        _this.pos = 0
         
-        len = /^([ \\t]*\\n)*/.exec(_this.text)[0].length
-        _this.text = _this.text.substr len
+        reg_ret = /^([ \\t]*\\n)*/.exec(_this.text)
+        _this.text = _this.text.substr reg_ret[0].length
+        _this.line += reg_ret[0].split('\n').length - 1
         
         tail_space_len = /^[ \\t]*/.exec(_this.text)[0].length
         _this.text = _this.text.substr tail_space_len
+        _this.pos += tail_space_len
         
         if tail_space_len != last_space
           while last_space < tail_space_len
