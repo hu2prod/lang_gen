@@ -5,7 +5,7 @@ require 'fy/codegen'
 
 module.exports = (col)->
   return if col.chk_file __FILE__
-  bp = col.autogen 'gram_main', /^gram_main$/, (ret)->
+  bp = col.autogen 'gram_main', (ret)->
     ret.hash.expected_token = "stmt_plus"
     ret.compile_fn = ()->
       if !@hash._injected
@@ -46,12 +46,12 @@ module.exports = (col)->
             expected_token : #{JSON.stringify ret.hash.expected_token}
             mode_full      : opt.mode_full or false
           if gram_res.length == 0
-            throw new Error "Parsing error. No proper combination found"
+            throw new Error \"Parsing error. No proper combination found\"
           if gram_res.length != 1
             [a,b] = gram_res
             show_diff a,b
             ### !pragma coverage-skip-block ###
-            throw new Error "Parsing error. More than one proper combination found \#{gram_res.length}"
+            throw new Error \"Parsing error. More than one proper combination found \#{gram_res.length}\"
           gram_res
 
         @parse = (tok_res, opt, on_end)->
@@ -63,11 +63,11 @@ module.exports = (col)->
         """#"
       
       ret.hash.cont = """
-        require "fy"
-        {Gram, show_diff} = require "gram2"
+        require \"fy\"
+        {Gram, show_diff} = require \"gram2\"
         module = @
         g = new Gram
-        {_tokenizer} = require "./tok.gen.coffee"
+        {_tokenizer} = require \"./tok.gen.coffee\"
         do ()->
           for v in _tokenizer.parser_list
             g.extra_hash_key_list.push v.name
@@ -78,6 +78,148 @@ module.exports = (col)->
         """#"
       return
     ret
+  # ###################################################################################################
+  bp = col.autogen 'gram_main_block_opt', (ret)->
+    ret.hash.expected_token = "stmt_plus"
+    ret.compile_fn = ()->
+      if !@hash._injected
+        throw new Error "Can't compile gram_main. Must be injected"
+      
+      gram_list = [
+        # не определился куда...
+        '''
+        q("const", "#num_const")                          .mx("ult=deep ti=pass")
+        q("rvalue","#const")                              .mx("priority=#{base_priority} ult=deep  ti=pass")
+        q("stmt",  "#rvalue")                             .mx("ult=deep ti=pass")
+        q("rvalue", "#lvalue")                            .mx("priority=#{base_priority} tail_space=$1.tail_space ult=deep  ti=pass")
+        
+        '''
+      ]
+      # require
+      present_module_list = []
+      for child in @child_list
+        present_module_list.upush child.name
+      require_module_list = []
+      for child in @child_list
+        continue if !child.hash.require_list
+        for v in child.hash.require_list
+          require_module_list.upush v if !present_module_list.has v
+      
+      for v in require_module_list
+        @inject ()->
+          col.gen v
+        
+      for child in @child_list
+        child.compile()
+        if child.gram_list
+          gram_list.append child.gram_list
+      
+      gram_list.push """
+        class Block
+          list : [] # 2 варианта 1. обычные token'ы 2. Block
+          res  : null
+          constructor:()->
+            @list = []
+          push : (t)->@list.push t
+        
+        @__parse = (tok_res, opt={})->
+          gram_res = g.go tok_res,
+            expected_token : opt.expected_token or \"stmt_plus\"
+            mode_full      : opt.mode_full or false
+          # p Object.keys(g)
+          if gram_res.length == 0
+            throw new Error \"Parsing error. No proper combination found\"
+          if gram_res.length != 1
+            [a,b] = gram_res
+            show_diff a,b
+            ### !pragma coverage-skip-block ###
+            throw new Error \"Parsing error. More than one proper combination found \#{gram_res.length}\"
+          gram_res
+        
+        @_parse = (tok_res, opt={})->
+          root = new Block
+          stack = []
+          block = root
+          for tok_list in tok_res
+            tok = tok_list[0]
+            switch tok.mx_hash.hash_key
+              when 'indent'
+                nest = new Block
+                nest.push tok_list
+                
+                block.push nest
+                stack.push block
+                block = nest
+              when 'dedent'
+                block.push tok_list
+                block = stack.pop()
+              else
+                block.push tok_list
+          
+          node_total  = 0
+          block_total = 0
+          walk = (block)->
+            block_total++
+            for sub in block.list
+              if sub instanceof Block
+                walk sub
+              else
+                node_total++
+            return
+          walk root
+          
+          node_count  = 0
+          block_count = 0
+          
+          loc_opt = clone opt
+          loc_opt.expected_token = 'block'
+          walk = (block, is_root)->
+            if opt.progress
+              process.stdout.write \"block=\#{block_count}/\#{block_total} node=\#{node_count}/\#{node_total}                   \\r\"
+            tok_list_list = []
+            for sub in block.list
+              if sub instanceof Block
+                walk sub, false
+                tok_list_list.push sub.res
+              else
+                node_count++
+                tok_list_list.push sub
+            
+            if is_root
+              block.res = module.__parse tok_list_list, opt
+            else
+              block.res = module.__parse tok_list_list, loc_opt
+            block_count++
+          if opt.progress
+            process.stdout.write \"\\n\"
+          walk root, true
+          root.res
+        
+        @parse = (tok_res, opt, on_end)->
+          try
+            gram_res = module._parse tok_res, opt
+          catch e
+            return on_end e
+          on_end null, gram_res
+        """#"
+      
+      ret.hash.cont = """
+        require \"fy\"
+        {Gram, show_diff} = require \"gram2\"
+        module = @
+        g = new Gram
+        {_tokenizer} = require \"./tok.gen.coffee\"
+        do ()->
+          for v in _tokenizer.parser_list
+            g.extra_hash_key_list.push v.name
+          
+        q = (a, b)->g.rule a,b
+        base_priority = -9000
+        #{join_list gram_list}
+        """#"
+      return
+    ret
+  # ###################################################################################################
   
   bp = col.autogen 'gram_space_scope', /^gram_space_scope$/, (ret)->
     ret.compile_fn = ()->
@@ -99,6 +241,7 @@ module.exports = (col)->
         '''
       ]
     ret
+  # ###################################################################################################
   
   bp = col.autogen 'gram_int_family', /^gram_int_family$/, (ret)->
     ret.hash.dec = true
@@ -133,6 +276,7 @@ module.exports = (col)->
   
   bp = col.autogen 'gram_at', /^gram_at$/, (ret)->
     ret
+  # ###################################################################################################
   
   bp = col.autogen 'gram_bin_op', /^gram_bin_op$/, (ret)->
     ret.hash.arith      = true # + - * / %
@@ -267,8 +411,9 @@ module.exports = (col)->
       return
     
     ret
+  # ###################################################################################################
   
-  bp = col.autogen 'gram_pre_op', /^gram_pre_op$/, (ret)->
+  bp = col.autogen 'gram_pre_op', (ret)->
     ret.hash.arith  = true # - +
     ret.hash.inc    = true # ++ --
     ret.hash.logic  = true # !
@@ -322,8 +467,9 @@ module.exports = (col)->
       return
     
     ret
+  # ###################################################################################################
   
-  bp = col.autogen 'gram_post_op', /^gram_post_op$/, (ret)->
+  bp = col.autogen 'gram_post_op', (ret)->
     ret.hash.inc    = true # ++ --
     ret.hash.is_not_null = true # ?
     
@@ -359,8 +505,9 @@ module.exports = (col)->
       return
     
     ret
+  # ###################################################################################################
   
-  bp = col.autogen 'gram_index_access', /^gram_index_access$/, (ret)->
+  bp = col.autogen 'gram_index_access', (ret)->
     ret.compile_fn = ()->
       ret.gram_list = []
       # NOTE мы можем так сделать поскольку у нас не выделена операция assign, и она с rvalue
@@ -371,7 +518,7 @@ module.exports = (col)->
       '''
       
     ret
-  bp = col.autogen 'gram_bracket', /^gram_bracket$/, (ret)->
+  bp = col.autogen 'gram_bracket', (ret)->
     ret.compile_fn = ()->
       ret.gram_list = []
       ret.gram_list.push '''
@@ -381,13 +528,13 @@ module.exports = (col)->
       
     ret
   
-  bp = col.autogen 'gram_inline_comment', /^gram_inline_comment$/, (ret)->
+  bp = col.autogen 'gram_inline_comment', (ret)->
     ret
   
-  bp = col.autogen 'gram_multiline_comment', /^gram_multiline_comment$/, (ret)->
+  bp = col.autogen 'gram_multiline_comment', (ret)->
     ret
   
-  bp = col.autogen 'gram_stmt', /^gram_stmt$/, (ret)->
+  bp = col.autogen 'gram_stmt', (ret)->
     ret.compile_fn = ()->
       ret.gram_list = [
         '''
@@ -401,7 +548,7 @@ module.exports = (col)->
     ret
   
   # дает {} : и string
-  bp = col.autogen 'gram_hash', /^gram_hash$/, (ret)->
+  bp = col.autogen 'gram_hash', (ret)->
     ret.hash.key_int          = true
     ret.hash.key_float        = true
     ret.hash.key_string       = true
@@ -412,13 +559,13 @@ module.exports = (col)->
     ret.hash.trailing_comma   = true
     ret
   
-  bp = col.autogen 'gram_array', /^gram_array$/, (ret)->
+  bp = col.autogen 'gram_array', (ret)->
     ret.hash.key_int          = true
     ret.hash.multiline        = true
     ret.hash.skip_comma_multiline = true
     ret
   
-  bp = col.autogen 'gram_comment', /^gram_comment$/, (ret)->
+  bp = col.autogen 'gram_comment', (ret)->
     ret.compile_fn = ()->
       ret.gram_list = [
         '''
@@ -429,8 +576,9 @@ module.exports = (col)->
       ]
       return
     ret
+  # ###################################################################################################
   
-  bp = col.autogen 'gram_type', /^gram_type$/, (ret)->
+  bp = col.autogen 'gram_type', (ret)->
     ret.hash.nest = true
     ret.hash.field = true
     ret.compile_fn = ()->
@@ -462,8 +610,9 @@ module.exports = (col)->
       
       return
     ret
+  # ###################################################################################################
   
-  bp = col.autogen 'gram_var_decl', /^gram_var_decl$/, (ret)->
+  bp = col.autogen 'gram_var_decl', (ret)->
     ret.hash.require_list = ['gram_type']
     ret.compile_fn = ()->
       ret.gram_list = []
@@ -474,7 +623,7 @@ module.exports = (col)->
       return
     ret
   
-  bp = col.autogen 'gram_macro', /^gram_macro$/, (ret)->
+  bp = col.autogen 'gram_macro', (ret)->
     ret.compile_fn = ()->
       ret.gram_list = []
       ret.gram_list.push '''
@@ -484,7 +633,7 @@ module.exports = (col)->
       '''#'
       return
   
-  bp = col.autogen 'gram_for_range', /^gram_for_range$/, (ret)->
+  bp = col.autogen 'gram_for_range', (ret)->
     ret.hash.allow_step = true
     ret.compile_fn = ()->
       ret.gram_list = []
@@ -500,7 +649,7 @@ module.exports = (col)->
       ret.gram_list.push ""
       return
   
-  bp = col.autogen 'gram_for_col', /^gram_for_col$/, (ret)->
+  bp = col.autogen 'gram_for_col', (ret)->
     ret.compile_fn = ()->
       ret.gram_list = []
       ret.gram_list.push '''
@@ -510,7 +659,7 @@ module.exports = (col)->
       '''#'
       return
   
-  bp = col.autogen 'gram_field_access', /^gram_field_access$/, (ret)->
+  bp = col.autogen 'gram_field_access', (ret)->
     ret.compile_fn = ()->
       ret.gram_list = []
       ret.gram_list.push '''
@@ -520,7 +669,7 @@ module.exports = (col)->
       return
     
   
-  bp = col.autogen 'gram_fn_call', /^gram_fn_call$/, (ret)->
+  bp = col.autogen 'gram_fn_call', (ret)->
     ret.compile_fn = ()->
       ret.gram_list = []
       ret.gram_list.push '''
@@ -532,8 +681,9 @@ module.exports = (col)->
       
       return
     ret
+  # ###################################################################################################
   
-  bp = col.autogen 'gram_fn_decl', /^gram_fn_decl$/, (ret)->
+  bp = col.autogen 'gram_fn_decl', (ret)->
     # ret.hash.arrow = true
     ret.hash.fat_arrow = true # LATER
     ret.hash.closure = false
@@ -564,6 +714,7 @@ module.exports = (col)->
       
       return
     ret
+  # ###################################################################################################
   
   bp = col.autogen 'gram_class_decl', /^gram_class_decl$/, (ret)->
     ret.hash.require_list = ['gram_fn_decl', 'gram_var_decl']
@@ -579,7 +730,7 @@ module.exports = (col)->
       return
     ret
   
-  bp = col.autogen 'gram_require', /^gram_require$/, (ret)->
+  bp = col.autogen 'gram_require', (ret)->
     # ret.hash.require_list = ['gram_const_string']
     ret.hash.single_quote = true
     ret.hash.double_quote = true

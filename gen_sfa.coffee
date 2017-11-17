@@ -41,6 +41,7 @@ fs.writeFileSync "tok.gen.coffee", main.hash.cont
 #    gram
 # ###################################################################################################
 main = col.gen 'gram_main'
+# main = col.gen 'gram_main_block_opt'
 
 main.inject ()->
   col.gen 'gram_space_scope'
