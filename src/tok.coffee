@@ -106,7 +106,7 @@ module.exports = (col)->
         
         reg_ret = /^([ \\t]*\\n)*/.exec(_this.text)
         _this.text = _this.text.substr reg_ret[0].length
-        _this.line += reg_ret[0].split('\n').length - 1
+        _this.line += reg_ret[0].split('\\n').length - 1
         
         tail_space_len = /^[ \\t]*/.exec(_this.text)[0].length
         _this.text = _this.text.substr tail_space_len
