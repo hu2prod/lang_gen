@@ -190,6 +190,9 @@ module.exports = (col)->
             else
               block.res = module.__parse tok_list_list, loc_opt
             block_count++
+            if opt.progress
+              process.stdout.write \"block=\#{block_count}/\#{block_total} node=\#{node_count}/\#{node_total}                   \\r\"
+            return
           if opt.progress
             process.stdout.write \"\\n\"
           walk root, true
