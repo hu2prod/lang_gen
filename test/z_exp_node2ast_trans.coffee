@@ -52,6 +52,12 @@ describe 'exp_node2ast_trans section', ()->
     it '!true', ()->
       assert.equal run("!true"), "!(true)"
     
+    it 'true && false', ()->
+      assert.equal run("true && false"), "(true && false)"
+    
+    it 'true and false', ()->
+      assert.equal run("true and false"), "(true && false)"
+    
     it 'a++', ()->
       assert.equal run("var a:int\na++"), "(a)++"
     

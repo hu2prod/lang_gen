@@ -32,6 +32,10 @@ bin_op_map =
   '||' : 'BOOL_OR'
   '^^' : 'BOOL_XOR'
   
+  'and' : 'BOOL_AND'
+  'or'  : 'BOOL_OR'
+  'xor' : 'BOOL_XOR'
+  
   '>>' : 'SHR'
   '<<' : 'SHL'
   '>>>' : 'LSR'
