@@ -223,6 +223,192 @@ module.exports = (col)->
       return
     ret
   # ###################################################################################################
+  bp = col.autogen 'gram_main_block_eol_opt', (ret)->
+    ret.hash.expected_token = "stmt_plus"
+    ret.compile_fn = ()->
+      if !@hash._injected
+        throw new Error "Can't compile gram_main. Must be injected"
+      
+      gram_list = [
+        # не определился куда...
+        '''
+        q("const", "#num_const")                          .mx("ult=deep ti=pass")
+        q("rvalue","#const")                              .mx("priority=#{base_priority} ult=deep  ti=pass")
+        q("stmt",  "#rvalue")                             .mx("ult=deep ti=pass")
+        q("rvalue", "#lvalue")                            .mx("priority=#{base_priority} tail_space=$1.tail_space ult=deep  ti=pass")
+        
+        '''
+      ]
+      # require
+      present_module_list = []
+      for child in @child_list
+        present_module_list.upush child.name
+      require_module_list = []
+      for child in @child_list
+        continue if !child.hash.require_list
+        for v in child.hash.require_list
+          require_module_list.upush v if !present_module_list.has v
+      
+      for v in require_module_list
+        @inject ()->
+          col.gen v
+        
+      for child in @child_list
+        child.compile()
+        if child.gram_list
+          gram_list.append child.gram_list
+      
+      gram_list.push """
+        class Block
+          list : [] # 2 варианта 1. обычные token'ы 2. Block
+          res  : null
+          is_stmt : false
+          constructor:()->
+            @list = []
+          push : (t)->@list.push t
+        
+        @__parse = (tok_res, opt={})->
+          gram_res = g.go tok_res,
+            expected_token : opt.expected_token or \"stmt_plus\"
+            mode_full      : opt.mode_full or false
+          # p Object.keys(g)
+          if gram_res.length == 0
+            throw new Error \"Parsing error. No proper combination found\"
+          if gram_res.length != 1
+            [a,b] = gram_res
+            show_diff a,b
+            ### !pragma coverage-skip-block ###
+            throw new Error \"Parsing error. More than one proper combination found \#{gram_res.length}\"
+          gram_res
+        
+        @_parse = (tok_res, opt={})->
+          root = new Block
+          stack = []
+          block = root
+          for tok_list in tok_res
+            tok = tok_list[0]
+            switch tok.mx_hash.hash_key
+              when 'indent'
+                nest = new Block
+                nest.push tok_list
+                
+                block.push nest
+                stack.push block
+                block = nest
+              when 'dedent'
+                block.push tok_list
+                block = stack.pop()
+              else
+                block.push tok_list
+          # split by eol
+          walk = (block)->
+            chunk_list = []
+            chunk = []
+            eol_list = []
+            for sub in block.list
+              if sub[0]?.mx_hash?.hash_key == 'eol'
+                eol_list.push sub
+                chunk_list.push chunk
+                chunk = []
+                continue
+              chunk.push sub
+            if chunk.length
+              chunk_list.push chunk
+            idx = 0
+            if chunk_list.length > 2
+              block.list = []
+              block.list.append chunk_list.shift()
+              last = chunk_list.pop()
+              for chunk in chunk_list
+                block.list.push eol_list[idx++]
+                sub = new Block
+                sub.is_stmt = true
+                sub.list = chunk
+                block.list.push sub
+              block.list.append last
+            
+            for sub in block.list
+              if sub instanceof Block
+                walk sub
+            return
+          walk root
+          
+          node_total  = 0
+          block_total = 0
+          walk = (block)->
+            block_total++
+            for sub in block.list
+              if sub instanceof Block
+                walk sub
+              else
+                node_total++
+            return
+          walk root
+          
+          node_count  = 0
+          block_count = 0
+          
+          opt_block = clone opt
+          opt_block.expected_token = 'block'
+          opt_stmt = clone opt
+          opt_stmt.expected_token = 'stmt_plus'
+          walk = (block, is_root)->
+            if opt.progress
+              process.stdout.write \"block=\#{block_count}/\#{block_total} node=\#{node_count}/\#{node_total}                   \\r\"
+            tok_list_list = []
+            for sub in block.list
+              if sub instanceof Block
+                walk sub, false
+                tok_list_list.push sub.res
+              else
+                node_count++
+                tok_list_list.push sub
+            
+            if is_root or tok_list_list.last()[0].mx_hash?.hash_key != 'dedent'
+              if block.is_stmt
+                block.res = module.__parse tok_list_list, opt_stmt
+                for v in block.res
+                  # hack a bit
+                  v.mx_hash.hash_key = 'stmt'
+                  v.mx_hash.eol = 1
+              else
+                block.res = module.__parse tok_list_list, opt
+            else
+              block.res = module.__parse tok_list_list, opt_block
+            block_count++
+            if opt.progress
+              process.stdout.write \"block=\#{block_count}/\#{block_total} node=\#{node_count}/\#{node_total}                   \\r\"
+            return
+          if opt.progress
+            process.stdout.write \"\\n\"
+          walk root, true
+          root.res
+        
+        @parse = (tok_res, opt, on_end)->
+          try
+            gram_res = module._parse tok_res, opt
+          catch e
+            return on_end e
+          on_end null, gram_res
+        """#"
+      
+      ret.hash.cont = """
+        require \"fy\"
+        {Gram, show_diff} = require \"gram2\"
+        module = @
+        g = new Gram
+        {_tokenizer} = require \"./tok.gen.coffee\"
+        do ()->
+          for v in _tokenizer.parser_list
+            g.extra_hash_key_list.push v.name
+          
+        q = (a, b)->g.rule a,b
+        base_priority = -9000
+        #{join_list gram_list}
+        """#"
+      return
+    ret
+  # ###################################################################################################
   
   bp = col.autogen 'gram_space_scope', /^gram_space_scope$/, (ret)->
     ret.compile_fn = ()->
