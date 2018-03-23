@@ -4,6 +4,8 @@ require 'fy'
 fs = require 'fs'
 
 mod = require('meta_block_gen')()
+# {exec} = require 'child_process'
+require 'shelljs/global'
 
 col = new mod.Block_blueprint_collection
 require('meta_block_gen/file_gen')(col)
@@ -41,8 +43,6 @@ fs.writeFileSync "tok.gen.coffee", main.hash.cont
 #    gram
 # ###################################################################################################
 main = col.gen 'gram_main'
-# main = col.gen 'gram_main_block_opt'
-# main = col.gen 'gram_main_block_eol_opt'
 
 main.inject ()->
   col.gen 'gram_space_scope'
@@ -67,4 +67,10 @@ main.inject ()->
   col.gen 'gram_require'
 
 main.compile()
-fs.writeFileSync "gram.gen.coffee", main.hash.cont
+fs.writeFileSync "_gram_generator.gen.coffee", main.hash.cont_gen
+fs.writeFileSync "gram.gen.coffee", main.hash.cont # cont_use
+
+require "./_gram_generator.gen.coffee"
+# some coverage fix
+exec 'iced -c _compiled_gram.gen.coffee'
+rm '_compiled_gram.gen.coffee'

@@ -11,6 +11,8 @@ describe 'index section', ()->
     ast = _parse tok
   
   it 'gen_sfa', ()->
+    p "WARNING. Long timeout test"
+    @timeout 10000
     require '../gen_sfa.coffee'
     {_tokenize, tokenize} = require('../tok.gen.coffee')
     {_parse, parse}    = require('../gram.gen.coffee')

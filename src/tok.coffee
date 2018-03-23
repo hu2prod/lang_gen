@@ -68,7 +68,7 @@ module.exports = (col)->
       
       ret.hash.cont = """
         require 'fy'
-        {Token_parser, Tokenizer, Node} = require 'gram2'
+        {Token_parser, Tokenizer, Node} = require 'gram3'
         module = @
         tokenizer = new Tokenizer
         #{join_list spec_list}
