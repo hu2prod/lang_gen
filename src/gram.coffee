@@ -532,14 +532,6 @@ module.exports = (col)->
   bp = col.autogen 'gram_field_access', (ret)->
     ret.compile_fn = ()->
       ret.gram_list = []
-      # проблема в детектировании рекурсивных правил
-      # gram3 не достаточно глубоко заходит в проверке первого аргумента
-      # из-за чего правило не срабатывает
-      
-      # fix 1 lvalue -> rvalue + l=r -> r=r
-      # плохо, не работает нормально определение вот таких случаев 1=1
-      # fix 2 rvalue -> lvalue
-      # плохо, мы режем синтаксис (a+1).b написать теперь нельзя
       ret.gram_list.push '''
         q('lvalue', '#rvalue "." #tok_identifier')          .mx("priority=#{base_priority} ult=field_access ti=macro").strict("$1.priority==#{base_priority}")
         
