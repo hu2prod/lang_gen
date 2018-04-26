@@ -52,8 +52,7 @@ module.exports = (col)->
         mod = require #{JSON.stringify './'+ret.hash.compiled_gram_path.replace '.coffee', ''}
         parser = new mod.Parser
         @_parse = (tok_res, opt={})->
-          gram_res = parser.go tok_res,
-            expected_token : #{JSON.stringify ret.hash.expected_token}
+          gram_res = parser.go tok_res
           if gram_res.length == 0
             throw new Error \"Parsing error. No proper combination found\"
           if gram_res.length != 1
@@ -79,6 +78,7 @@ module.exports = (col)->
         {Gram_scope} = require \"gram3\"
         fs = require 'fs'
         g = new Gram_scope
+        g.expected_token = #{JSON.stringify ret.hash.expected_token}
         {_tokenizer} = require \"./tok.gen.coffee\"
         do ()->
           for v in _tokenizer.parser_list
@@ -271,8 +271,7 @@ module.exports = (col)->
         
         q  = """q("bin_op", #{str_op})"""#"
         mx = """.mx("priority=#{priority}#{assoc_aux}")"""#"
-        s  = """.strict("$1.hash_key==tok_bin_op")"""#"
-        ret.gram_list.push "#{q.ljust 50}#{mx.ljust 50}#{s}"
+        ret.gram_list.push "#{q.ljust 50}#{mx.ljust 50}#"
       
       ret.gram_list.push """
         q("rvalue",  "#rvalue #bin_op #rvalue")           .mx("priority=#bin_op.priority ult=bin_op ti=bin_op func_decl=#rvalue[1].func_decl")   .strict("#rvalue[1].priority<#bin_op.priority #rvalue[2].priority<#bin_op.priority !#rvalue[1].func_decl")
@@ -329,8 +328,7 @@ module.exports = (col)->
         
         q  = """q("pre_op", #{str_op})"""#"
         mx = """.mx("priority=#{priority}")"""#"
-        s  = """.strict("$1.hash_key==tok_un_op#{aux_tail}")"""#"
-        ret.gram_list.push "#{q.ljust 50}#{mx.ljust 50}#{s}"
+        ret.gram_list.push "#{q.ljust 50}#{mx.ljust 50}"
       
       ret.gram_list.push """
         q("rvalue",  "#pre_op #rvalue")                   .mx("priority=#pre_op.priority ult=pre_op ti=pre_op")   .strict("#rvalue[1].priority<=#pre_op.priority")
@@ -367,8 +365,7 @@ module.exports = (col)->
         
         q  = """q("post_op", #{str_op})"""#"
         mx = """.mx("priority=#{priority}")"""#"
-        s  = """.strict("$1.hash_key==tok_un_op")"""#"
-        ret.gram_list.push "#{q.ljust 50}#{mx.ljust 50}#{s}"
+        ret.gram_list.push "#{q.ljust 50}#{mx.ljust 50}"
       
       ret.gram_list.push """
         q("rvalue",  "#rvalue #post_op")                  .mx("priority=#post_op.priority ult=post_op ti=post_op").strict("#rvalue[1].priority<#post_op.priority !#rvalue.tail_space")
@@ -475,7 +472,7 @@ module.exports = (col)->
           q('type_field_kv_list', '#type_field_kv "," #type_field_kv_list')
           q('type_field', '"{" #type_field_kv_list "}"')
         '''#'
-      str = "# TEMP DEBUG q('type', '#tok_identifier#{aux_nest}#{aux_field}')"
+      str = "q('type', '#tok_identifier#{aux_nest}#{aux_field}')"
       ret.gram_list.push """
         #{str.ljust 50}.mx("ult=type_name ti=pass")
         

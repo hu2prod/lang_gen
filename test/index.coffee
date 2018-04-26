@@ -18,6 +18,7 @@ describe 'index section', ()->
     {_parse, parse}    = require('../gram.gen.coffee')
   
   it 'interface test', (done)->
+    str = "a"
     await tokenize str, {}, defer err, tok; throw err if err
     await parse tok, {}, defer err, ret; throw err if err
     done()
