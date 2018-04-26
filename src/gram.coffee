@@ -532,6 +532,14 @@ module.exports = (col)->
   bp = col.autogen 'gram_field_access', (ret)->
     ret.compile_fn = ()->
       ret.gram_list = []
+      # проблема в детектировании рекурсивных правил
+      # gram3 не достаточно глубоко заходит в проверке первого аргумента
+      # из-за чего правило не срабатывает
+      
+      # fix 1 lvalue -> rvalue + l=r -> r=r
+      # плохо, не работает нормально определение вот таких случаев 1=1
+      # fix 2 rvalue -> lvalue
+      # плохо, мы режем синтаксис (a+1).b написать теперь нельзя
       ret.gram_list.push '''
         q('lvalue', '#rvalue "." #tok_identifier')          .mx("priority=#{base_priority} ult=field_access ti=macro").strict("$1.priority==#{base_priority}")
         
@@ -545,7 +553,7 @@ module.exports = (col)->
       ret.gram_list.push '''
         q('fn_call_arg_list', '#rvalue')
         q('fn_call_arg_list', '#rvalue "," #fn_call_arg_list')
-        # TEMP DEBUG q('rvalue', '#rvalue ( #fn_call_arg_list? )')     .mx("priority=#{base_priority} ult=fn_call").strict("$1.priority==#{base_priority}")
+        q('rvalue', '#rvalue "(" #fn_call_arg_list? ")"')     .mx("priority=#{base_priority} ult=fn_call").strict("$1.priority==#{base_priority}")
         
       '''#'
       
@@ -567,18 +575,18 @@ module.exports = (col)->
         q('fn_decl_arg', '#tok_identifier ":" #type')
         q('fn_decl_arg_list', '#fn_decl_arg')
         q('fn_decl_arg_list', '#fn_decl_arg "," #fn_decl_arg_list')
-        # TEMP DEBUG q('stmt', '#tok_identifier "(" #fn_decl_arg_list? ")" ":" #type "->"').mx('ult=fn_decl')
-        # TEMP DEBUG q('stmt', '#tok_identifier "(" #fn_decl_arg_list? ")" ":" #type "->" #block').mx('ult=fn_decl eol=1')
-        # TEMP DEBUG q('stmt', '#tok_identifier "(" #fn_decl_arg_list? ")" ":" #type "->" #rvalue').mx('ult=fn_decl')
+        q('stmt', '#tok_identifier "(" #fn_decl_arg_list? ")" ":" #type "->"').mx('ult=fn_decl')
+        q('stmt', '#tok_identifier "(" #fn_decl_arg_list? ")" ":" #type "->" #block').mx('ult=fn_decl eol=1')
+        q('stmt', '#tok_identifier "(" #fn_decl_arg_list? ")" ":" #type "->" #rvalue').mx('ult=fn_decl')
         
-        # TEMP DEBUG q('stmt', '#return #rvalue?')                     .mx('ult=return ti=return')
+        q('stmt', '#return #rvalue?')                     .mx('ult=return ti=return')
         
       '''#'
       if ret.hash.closure
         ret.gram_list.push '''
-        # TEMP DEBUG q('rvalue', '( #fn_decl_arg_list? ) ":" #type "=>"').mx("priority=#{base_priority} ult=cl_decl")
-        # TEMP DEBUG q('rvalue', '( #fn_decl_arg_list? ) ":" #type "=>" #block').mx("priority=#{base_priority} ult=cl_decl eol=1")
-        # TEMP DEBUG q('rvalue', '( #fn_decl_arg_list? ) ":" #type "=>" #rvalue').mx("priority=#{base_priority} ult=cl_decl")
+        q('rvalue', '"(" #fn_decl_arg_list? ")" ":" #type "=>"').mx("priority=#{base_priority} ult=cl_decl")
+        q('rvalue', '"(" #fn_decl_arg_list? ")" ":" #type "=>" #block').mx("priority=#{base_priority} ult=cl_decl eol=1")
+        q('rvalue', '"(" #fn_decl_arg_list? ")" ":" #type "=>" #rvalue').mx("priority=#{base_priority} ult=cl_decl")
         
       '''#'
       
