@@ -566,7 +566,7 @@ module.exports = (col)->
       '''#'
       if ret.hash.allow_bracketless
         ret.gram_list.push '''
-          q('rvalue', '#rvalue #fn_call_arg_list ')        .mx("priority=#{base_priority} ult=fn_call").strict("$1.priority==#{base_priority}")
+          q('rvalue', '#rvalue #fn_call_arg_list ')        .mx("priority=#{base_priority} ult=fn_call").strict("$1.priority==#{base_priority} $1.tail_space")
         '''#'
       ret.gram_list.push ""
       return
