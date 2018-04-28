@@ -179,6 +179,7 @@ module.exports = (col)->
     ret.hash.assign_list= "+ - * / % ** // %% << >> >>> && || ^^ and or xor & | ^".split /\s+/g
     ret.hash.ban_list   = [] # если надо убить какой-то отдельный оператор
     ret.hash.extra_list = [] # если надо добавить какой-то отдельный оператор
+    ret.hash.space_fix  = false
 
     ret.hash.priority_hash =
       '//' : 4
@@ -275,17 +276,24 @@ module.exports = (col)->
         mx = """.mx("priority=#{priority}#{assoc_aux}")"""#"
         ret.gram_list.push "#{q.ljust 50}#{mx.ljust 50}#"
       
-      # TODO LATER
-      # под снос
-      # func_decl=#rvalue[1].func_decl
-      # !#rvalue[1].func_decl
-      ret.gram_list.push """
-        q("rvalue",  "#rvalue #bin_op #rvalue")           .mx("priority=#bin_op.priority ult=bin_op ti=bin_op func_decl=#rvalue[1].func_decl")   .strict("#rvalue[1].priority<#bin_op.priority #rvalue[2].priority<#bin_op.priority !#rvalue[1].func_decl")
-        q("rvalue",  "#rvalue #bin_op #rvalue")           .mx("priority=#bin_op.priority ult=bin_op ti=bin_op func_decl=#rvalue[1].func_decl")   .strict("#rvalue[1].priority<#bin_op.priority #rvalue[2].priority==#bin_op.priority !#rvalue[1].func_decl #bin_op.left_assoc")
-        q("rvalue",  "#rvalue #bin_op #rvalue")           .mx("priority=#bin_op.priority ult=bin_op ti=bin_op func_decl=#rvalue[1].func_decl")   .strict("#rvalue[1].priority==#bin_op.priority #rvalue[2].priority<#bin_op.priority !#rvalue[1].func_decl #bin_op.right_assoc")
-        
-      """#"
-      # TODO
+      if !ret.hash.space_fix
+        ret.gram_list.push """
+          q("rvalue",  "#rvalue #bin_op #rvalue")           .mx("priority=#bin_op.priority ult=bin_op ti=bin_op")   .strict("$1.priority<#bin_op.priority  $3.priority<#bin_op.priority")
+          q("rvalue",  "#rvalue #bin_op #rvalue")           .mx("priority=#bin_op.priority ult=bin_op ti=bin_op")   .strict("$1.priority<#bin_op.priority  $3.priority==#bin_op.priority #bin_op.left_assoc")
+          q("rvalue",  "#rvalue #bin_op #rvalue")           .mx("priority=#bin_op.priority ult=bin_op ti=bin_op")   .strict("$1.priority==#bin_op.priority $3.priority<#bin_op.priority  #bin_op.right_assoc")
+          
+        """#"
+      else
+        # варианты
+        # a+b
+        # a + b
+        # a+ b
+        ret.gram_list.push """
+          q("rvalue",  "#rvalue #bin_op #rvalue")           .mx("priority=#bin_op.priority ult=bin_op ti=bin_op")   .strict("$1.priority<#bin_op.priority  $3.priority<#bin_op.priority  !!$1.tail_space<=!!$2.tail_space")
+          q("rvalue",  "#rvalue #bin_op #rvalue")           .mx("priority=#bin_op.priority ult=bin_op ti=bin_op")   .strict("$1.priority<#bin_op.priority  $3.priority==#bin_op.priority !!$1.tail_space<=!!$2.tail_space #bin_op.left_assoc")
+          q("rvalue",  "#rvalue #bin_op #rvalue")           .mx("priority=#bin_op.priority ult=bin_op ti=bin_op")   .strict("$1.priority==#bin_op.priority $3.priority<#bin_op.priority  !!$1.tail_space<=!!$2.tail_space #bin_op.right_assoc")
+          
+        """#"
       return
     
     ret
