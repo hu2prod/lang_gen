@@ -399,9 +399,23 @@ module.exports = (col)->
     ret
   
   bp = col.autogen 'gram_inline_comment', (ret)->
+    ret.compile_fn = ()->
+      ret.gram_list = [
+        '''
+        q('stmt', '#tok_inline_comment')                  .mx("ult=comment ti=pass")
+        
+        '''#'
+      ]
     ret
   
   bp = col.autogen 'gram_multiline_comment', (ret)->
+    ret.compile_fn = ()->
+      ret.gram_list = [
+        '''
+        q('stmt', '#tok_multiline_comment')               .mx("ult=comment ti=pass")
+        
+        '''#'
+      ]
     ret
   
   bp = col.autogen 'gram_stmt', (ret)->
