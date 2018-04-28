@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "ast4gen": "github:hu2prod/ast4gen",
-    "gram3": "github:hu2prod/gram3",
+    "gram3": "github:hu2prod/gram3#experimental_tuning",
     "meta_block_gen": "github:hu2prod/meta_block_gen"
   }
 }

@@ -50,7 +50,7 @@ module.exports = (col)->
       ret.hash.cont = """
         module = @
         mod = require #{JSON.stringify './'+ret.hash.compiled_gram_path.replace '.coffee', ''}
-        parser = new mod.Parser
+        @_parser = parser = new mod.Parser
         @_parse = (tok_res, opt={})->
           gram_res = parser.go tok_res
           if gram_res.length == 0
