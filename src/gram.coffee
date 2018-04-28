@@ -330,7 +330,10 @@ module.exports = (col)->
         
         q  = """q("pre_op", #{str_op})"""#"
         mx = """.mx("priority=#{priority}")"""#"
-        ret.gram_list.push "#{q.ljust 50}#{mx.ljust 50}"
+        strict = ""
+        if aux_tail
+          strict = """.strict("#{aux_tail}")"""
+        ret.gram_list.push "#{q.ljust 50}#{mx.ljust 50}#{strict.ljust 50}"
       
       ret.gram_list.push """
         q("rvalue",  "#pre_op #rvalue")                   .mx("priority=#pre_op.priority ult=pre_op ti=pre_op")   .strict("#rvalue[1].priority<=#pre_op.priority")
