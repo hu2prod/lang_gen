@@ -35,11 +35,13 @@ describe 'index section', ()->
       assert !!err
       done()
   
-  str_list = """
+  str_list = '''
     a
     +a
     a+b
-    """.split /\n/g
+    'a'
+    "a"
+    '''.split /\n/g #'
   for str in str_list
     do (str)->
       it "parses '#{str}'", ()->

@@ -468,7 +468,7 @@ module.exports = (col)->
       if ret.hash.single_quote
         ret.parser_list.push "new Token_parser 'tok_string_sq', /^'#{single_quoted_regex_craft}'/"
       if ret.hash.double_quote
-        ret.parser_list.push "new Token_parser 'tok_string_dq', /^:\"#{double_quoted_regexp_craft}\"/"
+        ret.parser_list.push "new Token_parser 'tok_string_dq', /^\"#{double_quoted_regexp_craft}\"/"
       return
     ret
   
