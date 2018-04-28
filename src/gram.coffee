@@ -556,15 +556,19 @@ module.exports = (col)->
     
   
   bp = col.autogen 'gram_fn_call', (ret)->
+    ret.hash.allow_bracketless = false
     ret.compile_fn = ()->
       ret.gram_list = []
       ret.gram_list.push '''
         q('fn_call_arg_list', '#rvalue')
         q('fn_call_arg_list', '#rvalue "," #fn_call_arg_list')
         q('rvalue', '#rvalue "(" #fn_call_arg_list? ")"')     .mx("priority=#{base_priority} ult=fn_call").strict("$1.priority==#{base_priority}")
-        
       '''#'
-      
+      if ret.hash.allow_bracketless
+        ret.gram_list.push '''
+          q('rvalue', '#rvalue #fn_call_arg_list ')        .mx("priority=#{base_priority} ult=fn_call").strict("$1.priority==#{base_priority}")
+        '''#'
+      ret.gram_list.push ""
       return
     ret
   # ###################################################################################################
