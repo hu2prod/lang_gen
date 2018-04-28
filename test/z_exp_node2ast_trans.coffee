@@ -31,8 +31,22 @@ describe 'exp_node2ast_trans section', ()->
     it '\\n1', ()->
       assert.equal run("\n1"), "1"
     
+    # не реализована
+    # it '+1', ()->
+    #   assert.equal run("+1"), "+1"
+    
     it '1+2', ()->
       assert.equal run("1+2"), "(1 + 2)"
+    
+    it '1 + 2', ()->
+      assert.equal run("1 + 2"), "(1 + 2)"
+    
+    it '1+ 2', ()->
+      assert.equal run("1+ 2"), "(1 + 2)"
+    
+    # а вот так нельзя
+    # it '1 +2', ()->
+    #   assert.equal run("1 +2"), "(1 + 2)"
     
     it '1+2*3', ()->
       assert.equal run("1+2*3"), "(1 + (2 * 3))"

@@ -275,6 +275,10 @@ module.exports = (col)->
         mx = """.mx("priority=#{priority}#{assoc_aux}")"""#"
         ret.gram_list.push "#{q.ljust 50}#{mx.ljust 50}#"
       
+      # TODO LATER
+      # под снос
+      # func_decl=#rvalue[1].func_decl
+      # !#rvalue[1].func_decl
       ret.gram_list.push """
         q("rvalue",  "#rvalue #bin_op #rvalue")           .mx("priority=#bin_op.priority ult=bin_op ti=bin_op func_decl=#rvalue[1].func_decl")   .strict("#rvalue[1].priority<#bin_op.priority #rvalue[2].priority<#bin_op.priority !#rvalue[1].func_decl")
         q("rvalue",  "#rvalue #bin_op #rvalue")           .mx("priority=#bin_op.priority ult=bin_op ti=bin_op func_decl=#rvalue[1].func_decl")   .strict("#rvalue[1].priority<#bin_op.priority #rvalue[2].priority==#bin_op.priority !#rvalue[1].func_decl #bin_op.left_assoc")
