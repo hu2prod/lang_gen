@@ -22,8 +22,7 @@ module.exports = (col)->
         # не определился куда...
         '''
         q("const", "#num_const")                          .mx("ult=deep ti=pass")
-        q("const", "#tok_string_sq")                      .mx("ult=deep ti=pass")
-        q("const", "#tok_string_dq")                      .mx("ult=deep ti=pass")
+        q("const", "#str_const")                          .mx("ult=deep ti=pass")
         q("rvalue","#const")                              .mx("priority=#{base_priority} ult=deep  ti=pass")
         q("stmt",  "#rvalue")                             .mx("ult=deep ti=pass")
         q("rvalue", "#lvalue")                            .mx("priority=#{base_priority} tail_space=$1.tail_space ult=deep  ti=pass")
@@ -146,6 +145,23 @@ module.exports = (col)->
         'q("num_const", "#tok_float_literal")              .mx("ult=const ti=const type=float")'
         ''
       ]
+      return
+    ret
+  
+  bp = col.autogen 'gram_str_family', /^gram_str_family$/, (ret)->
+    ret.hash.sq = true
+    ret.hash.dq = true
+    ret.hash.sq_heredoc = true
+    ret.hash.dq_heredoc = true
+    ret.compile_fn = ()->
+      ret.gram_list =[]
+      
+      if ret.hash.sq
+        ret.gram_list.push 'q("str_const", "#tok_string_sq")                      .mx("ult=const ti=const type=string")'
+      if ret.hash.dq
+        ret.gram_list.push 'q("str_const", "#tok_string_dq")                      .mx("ult=const ti=const type=string")'
+      
+      ret.gram_list.push ''
       return
     ret
   
