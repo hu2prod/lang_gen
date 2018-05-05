@@ -580,13 +580,15 @@ module.exports = (col)->
     ret
   
   bp = col.autogen 'gram_macro', (ret)->
+    ret.hash.token = 'stmt'
     ret.compile_fn = ()->
       ret.gram_list = []
-      ret.gram_list.push '''
-        q('stmt', '#tok_identifier #block')               .mx("ult=macro ti=macro eol=1")
-        q('stmt', '#tok_identifier #rvalue #block')       .mx("ult=macro ti=macro eol=1").strict("#tok_identifier!='class'")
+      token = JSON.stringify ret.hash.token
+      ret.gram_list.push """
+        q(#{token}, '#tok_identifier #block')               .mx("ult=macro ti=macro eol=1")
+        q(#{token}, '#tok_identifier #rvalue #block')       .mx("ult=macro ti=macro eol=1").strict("#tok_identifier!='class'")
         
-      '''#'
+      """#"
       return
   
   bp = col.autogen 'gram_for_range', (ret)->
