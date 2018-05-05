@@ -145,6 +145,8 @@ module.exports = (col)->
           new Token_parser 'tok_identifier', /^[_\$a-z][_\$a-z0-9]*/i, (_this, ret_proxy, v)->
             if v.value == 'return'
               v.mx_hash.hash_key = 'return'
+            if v.value == 'class'
+              v.mx_hash.hash_key = 'class'
             ret_proxy.push [v]
             return
           
@@ -410,6 +412,7 @@ module.exports = (col)->
     ret
   
   bp = col.autogen 'tok_class', /^tok_class$/, (ret)->
+    throw new Error "don't use tok_class"
     ret
   
   bp = col.autogen 'tok_var_decl', /^tok_var_decl$/, (ret)->

@@ -590,7 +590,7 @@ module.exports = (col)->
         aux_mx += " "
       ret.gram_list.push """
         q(#{token}, '#tok_identifier #block')               .mx("#{aux_mx}ult=macro ti=macro eol=1")
-        q(#{token}, '#tok_identifier #rvalue #block')       .mx("#{aux_mx}ult=macro ti=macro eol=1").strict("#tok_identifier!='class'")
+        q(#{token}, '#tok_identifier #rvalue #block')       .mx("#{aux_mx}ult=macro ti=macro eol=1")
         
       """#"
       return
