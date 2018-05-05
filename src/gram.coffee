@@ -581,12 +581,16 @@ module.exports = (col)->
   
   bp = col.autogen 'gram_macro', (ret)->
     ret.hash.token = 'stmt'
+    ret.hash.aux_mx = ''
     ret.compile_fn = ()->
       ret.gram_list = []
       token = JSON.stringify ret.hash.token
+      aux_mx = ret.hash.aux_mx
+      if aux_mx
+        aux_mx += " "
       ret.gram_list.push """
-        q(#{token}, '#tok_identifier #block')               .mx("ult=macro ti=macro eol=1")
-        q(#{token}, '#tok_identifier #rvalue #block')       .mx("ult=macro ti=macro eol=1").strict("#tok_identifier!='class'")
+        q(#{token}, '#tok_identifier #block')               .mx("#{aux_mx}ult=macro ti=macro eol=1")
+        q(#{token}, '#tok_identifier #rvalue #block')       .mx("#{aux_mx}ult=macro ti=macro eol=1").strict("#tok_identifier!='class'")
         
       """#"
       return
