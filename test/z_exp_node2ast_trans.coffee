@@ -150,9 +150,8 @@ describe 'exp_node2ast_trans section', ()->
         """), """
         if 1
           2
-        else
-          if 3
-            4
+        else if 3
+          4
         """
     it 'if 1 2 elseif 3 4', ()->
       assert.equal run(t = """
@@ -163,9 +162,8 @@ describe 'exp_node2ast_trans section', ()->
         """), """
         if 1
           2
-        else
-          if 3
-            4
+        else if 3
+          4
         """
     it 'if 1 2 elsif 3 4', ()->
       assert.equal run(t = """
@@ -176,9 +174,8 @@ describe 'exp_node2ast_trans section', ()->
         """), """
         if 1
           2
-        else
-          if 3
-            4
+        else if 3
+          4
         """
     it 'if 1 2 elif 3 4', ()->
       assert.equal run(t = """
@@ -189,9 +186,8 @@ describe 'exp_node2ast_trans section', ()->
         """), """
         if 1
           2
-        else
-          if 3
-            4
+        else if 3
+          4
         """
     it '2 if 1', ()->
       assert.equal run(t = """

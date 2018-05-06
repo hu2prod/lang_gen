@@ -282,7 +282,7 @@ fix_iterator = (t)->
             condition = seek_token 'rvalue', if_tail_stmt
             block = seek_token 'block', if_tail_stmt
             new_if_tail_stmt = seek_token 'if_tail_stmt', if_tail_stmt
-            _ret.f = if_walk condition, block, new_if_tail_stmt
+            _ret.f.list.push if_walk condition, block, new_if_tail_stmt
           else
             _ret.f = gen seek_token 'block', if_tail_stmt
         _ret
