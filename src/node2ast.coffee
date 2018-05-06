@@ -78,6 +78,10 @@ seek_token_list = (name, t)->
   for v in t.value_array
     list.push v if v.mx_hash.hash_key == name
   list
+wrap_scope = (stmt)->
+  ret = new ast.Scope
+  ret.list.push stmt
+  ret
 gen = null
 seek_and_set_line_pos = (ret, root)->
   
@@ -247,6 +251,16 @@ fix_iterator = (t)->
       if !fn = macro_fn_map[macro_name]
         throw new Error "unknown macro '#{macro_name}'. Known macro list = [#{Object.keys(macro_fn_map).join ', '}]"
       fn(condition, scope)
+    
+    when "if_postfix"
+      condition = seek_token 'rvalue', root
+      block = seek_token 'stmt', root
+      
+      ret = new ast.If
+      seek_and_set_line_pos ret, block
+      ret.cond= gen condition
+      ret.t   = wrap_scope gen block
+      ret
     
     when "if"
       if_walk = (condition, block, if_tail_stmt)->
