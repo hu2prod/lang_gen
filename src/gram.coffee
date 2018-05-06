@@ -595,6 +595,36 @@ module.exports = (col)->
       """#"
       return
   
+  bp = col.autogen 'gram_if', (ret)->
+    ret.hash.postfix = false
+    ret.hash.unless  = false
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      ret.gram_list.push """
+        q('stmt', 'if #rvalue #block #if_tail_stmt?')                       .mx("ult=if ti=if eol=1")
+        q('if_tail_stmt', 'else if #rvalue #block #if_tail_stmt?')          .mx("ult=else_if ti=else_if eol=1")
+        q('if_tail_stmt', 'elseif|elsif|elif #rvalue #block #if_tail_stmt?').mx("ult=else_if ti=else_if eol=1")
+        q('if_tail_stmt', 'else #block')                                    .mx("ult=else ti=else eol=1")
+      """
+      if ret.hash.postfix
+        ret.gram_list.push """
+          q('stmt', '#stmt if #rvalue')       .mx("ult=if_postfix ti=if_postfix eol=1")
+        """
+      
+      ret.gram_list.push ""
+      return
+  
+  bp = col.autogen 'gram_switch', (ret)->
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      ret.gram_list.push """
+        q('stmt', 'switch #rvalue #indent #switch_tail_stmt #dedent')   .mx("ult=switch ti=switch eol=1")
+        q('switch_tail_stmt', 'when #rvalue #block #switch_tail_stmt?') .mx("ult=switch_when ti=switch_when eol=1")
+        q('switch_tail_stmt', 'else #block')                            .mx("ult=switch_else ti=switch_else eol=1")
+      """
+      ret.gram_list.push ""
+      return
+  
   bp = col.autogen 'gram_for_range', (ret)->
     ret.hash.allow_step = true
     ret.compile_fn = ()->

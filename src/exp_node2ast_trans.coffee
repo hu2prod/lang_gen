@@ -94,25 +94,6 @@ seek_and_set_line_pos = (ret, root)->
   
 
 @macro_fn_map = macro_fn_map =
-  'if' : (condition, block)->
-    if !condition
-      throw new Error "macro if should have condition"
-    ret = new ast.If
-    seek_and_set_line_pos ret, block
-    
-    ret.cond= gen condition
-    ret.t   = gen block
-    ret
-  'else' : (condition, block)->
-    # HACKER WAY
-    if condition
-      throw new Error "macro else should not have condition"
-    ret = new ast.If
-    seek_and_set_line_pos ret, block
-    
-    ret.is_else = true
-    ret.t   = gen block
-    ret
   'loop' : (condition, block)->
     if condition
       throw new Error "macro loop should not have condition"
@@ -130,30 +111,6 @@ seek_and_set_line_pos = (ret, root)->
     ret.cond= gen condition
     ret.scope= gen block
     ret
-  'switch' : (condition, block)->
-    if !condition
-      throw new Error "macro switch should have condition"
-    ret = new ast.Switch
-    seek_and_set_line_pos ret, block
-    
-    ret.cond= gen condition
-    scope = gen block
-    for v in scope.list
-      unless v.cond instanceof ast.Const
-        p v.cond
-        throw new Error "when cond should be const"
-      ret.hash[v.cond.val] = v.t
-    ret
-  'when' : (condition, block)->
-    if !condition
-      throw new Error "macro when should have condition"
-    ret = new ast.If
-    seek_and_set_line_pos ret, block
-    
-    ret.cond= gen condition
-    ret.t   = gen block
-    ret
-    
 
 
 fix_iterator = (t)->
@@ -290,6 +247,63 @@ fix_iterator = (t)->
       if !fn = macro_fn_map[macro_name]
         throw new Error "unknown macro '#{macro_name}'. Known macro list = [#{Object.keys(macro_fn_map).join ', '}]"
       fn(condition, scope)
+    
+    when "if"
+      if_walk = (condition, block, if_tail_stmt)->
+        _ret = new ast.If
+        seek_and_set_line_pos _ret, block
+        _ret.cond= gen condition
+        _ret.t   = gen block
+        
+        if if_tail_stmt
+          value0 = if_tail_stmt.value_array[0].value
+          value1 = if_tail_stmt.value_array[1].value
+          is_else_if = false
+          if value0 in ['elseif', 'elsif', 'elif']
+            is_else_if = true
+          if value1 == 'if'
+            is_else_if = true
+          
+          if is_else_if
+            condition = seek_token 'rvalue', if_tail_stmt
+            block = seek_token 'block', if_tail_stmt
+            new_if_tail_stmt = seek_token 'if_tail_stmt', if_tail_stmt
+            _ret.f = if_walk condition, block, new_if_tail_stmt
+          else
+            _ret.f = gen seek_token 'block', if_tail_stmt
+        _ret
+      
+      condition = seek_token 'rvalue', root
+      block = seek_token 'block', root
+      if_tail_stmt = seek_token 'if_tail_stmt', root
+      if_walk condition, block, if_tail_stmt
+    
+    when "switch"
+      condition = seek_token 'rvalue', root
+      switch_tail_stmt = seek_token 'switch_tail_stmt', root
+      
+      ret = new ast.Switch
+      seek_and_set_line_pos ret, root
+      ret.cond= gen condition
+      
+      while switch_tail_stmt
+        switch switch_tail_stmt.mx_hash.ult
+          when 'switch_when'
+            condition = gen seek_token 'rvalue', switch_tail_stmt
+            v = switch_tail_stmt
+            unless condition instanceof ast.Const
+              perr condition
+              throw new Error "when cond should be const"
+            ret.hash[condition.val] = gen seek_token 'block', switch_tail_stmt
+          when 'switch_else'
+            ret.f = gen seek_token 'block', switch_tail_stmt
+          else
+            ### !pragma coverage-skip-block ###
+            perr root
+            throw new Error "unknown ult=#{root.mx_hash.ult} in switch"
+        
+        switch_tail_stmt = seek_token 'switch_tail_stmt', switch_tail_stmt
+      ret
     
     when "for_range"
       ret = new ast.For_range
@@ -452,25 +466,12 @@ class_prepare = (ctx, t)->
     switch t.constructor.name
       when "Scope"
         ctx_nest = ctx.mk_nest()
-        prev = null
-        remove_list = []
         for v in t.list
           if v.constructor.name == "Class_decl"
             class_prepare ctx, v
         for v in t.list
-          if v.is_else
-            if !prev
-              throw new Error "Can't bind else to null"
-            unless prev.constructor.name in ['If', 'Switch']
-              throw new Error "Can't bind else to #{prev.constructor.name}"
-            remove_list.push v
-            prev.f = v.t
-            walk v.t, ctx_nest
-            continue
           walk v, ctx_nest
-          prev = v
-        for v in remove_list
-          t.list.remove v
+        
         null
       
       when "Var_decl"

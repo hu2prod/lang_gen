@@ -141,6 +141,58 @@ describe 'exp_node2ast_trans section', ()->
         else
           3
         """), t
+    it 'if 1 2 else if 3 4', ()->
+      assert.equal run(t = """
+        if 1
+          2
+        else if 3
+          4
+        """), """
+        if 1
+          2
+        else
+          if 3
+            4
+        """
+    it 'if 1 2 elseif 3 4', ()->
+      assert.equal run(t = """
+        if 1
+          2
+        elseif 3
+          4
+        """), """
+        if 1
+          2
+        else
+          if 3
+            4
+        """
+    it 'if 1 2 elsif 3 4', ()->
+      assert.equal run(t = """
+        if 1
+          2
+        elsif 3
+          4
+        """), """
+        if 1
+          2
+        else
+          if 3
+            4
+        """
+    it 'if 1 2 elif 3 4', ()->
+      assert.equal run(t = """
+        if 1
+          2
+        elif 3
+          4
+        """), """
+        if 1
+          2
+        else
+          if 3
+            4
+        """
     
     it 'for i in [1 .. 10] 0', ()->
       assert.equal run(t = """
@@ -289,21 +341,32 @@ describe 'exp_node2ast_trans section', ()->
         """
   
   # switch is NOT working now
-  # describe 'switch', ()->
-  #   it 'switch 1 when 2 3 else 4', ()->
-  #     assert.equal run("""
-  #       switch 1
-  #         when 2
-  #           3
-  #         else
-  #           4
-  #       """), """
-  #       switch 1
-  #         when 2
-  #           3
-  #         else
-  #           4
-  #       """
+  describe 'switch', ()->
+    it 'switch 1 when 2 3 else 4', ()->
+      assert.equal run("""
+        switch 1
+          when 2
+            3
+        """), """
+        switch 1
+          when 2
+            3
+        """
+    
+    it 'switch 1 when 2 3 else 4', ()->
+      assert.equal run("""
+        switch 1
+          when 2
+            3
+          else
+            4
+        """), """
+        switch 1
+          when 2
+            3
+          else
+            4
+        """
   
   describe 'fn_decl', ()->
     it 'a():void->', ()->

@@ -60,6 +60,8 @@ main.inject ()->
   col.gen 'gram_var_decl'
   col.gen 'gram_field_access'
   col.gen 'gram_macro'
+  col.gen 'gram_if'
+  col.gen 'gram_switch'
   col.gen 'gram_for_range'
   col.gen 'gram_for_col'
   fnd = col.gen 'gram_fn_decl'
