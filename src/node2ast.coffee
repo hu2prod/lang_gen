@@ -78,10 +78,6 @@ seek_token_list = (name, t)->
   for v in t.value_array
     list.push v if v.mx_hash.hash_key == name
   list
-wrap_scope = (stmt)->
-  ret = new ast.Scope
-  ret.list.push stmt
-  ret
 gen = null
 seek_and_set_line_pos = (ret, root)->
   
@@ -95,7 +91,11 @@ seek_and_set_line_pos = (ret, root)->
     return false
   walk root
   return
-  
+
+wrap_scope = (stmt)->
+  ret = new ast.Scope
+  ret.list.push stmt
+  ret
 
 @macro_fn_map = macro_fn_map =
   'loop' : (condition, block)->
