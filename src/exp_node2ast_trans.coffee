@@ -310,8 +310,8 @@ fix_iterator = (t)->
       ret = new ast.For_col
       seek_and_set_line_pos ret, root
       
-      [_for_skip, k, v, _skip_in] = seek_token_list 'tok_identifier', root
-      if !_skip_in
+      [_for_skip, k, v] = seek_token_list 'tok_identifier', root
+      if !v
         v = k
         k = null
       

@@ -145,8 +145,8 @@ module.exports = (col)->
           new Token_parser 'tok_identifier', /^[_\$a-z][_\$a-z0-9]*/i, (_this, ret_proxy, v)->
             if v.value == 'return'
               v.mx_hash.hash_key = 'return'
-            if v.value == 'class'
-              v.mx_hash.hash_key = 'class'
+            if v.value in ['class', 'in']
+              v.mx_hash.hash_key = '_'
             ret_proxy.push [v]
             return
           
