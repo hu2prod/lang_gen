@@ -67,6 +67,8 @@ main.inject ()->
   col.gen 'gram_for_col'
   fnd = col.gen 'gram_fn_decl'
   fnd.hash.closure = true
+  call = col.gen 'gram_fn_call'
+  call.hash.allow_bracketless = true
   col.gen 'gram_class_decl'
   col.gen 'gram_require'
 

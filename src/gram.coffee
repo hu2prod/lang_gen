@@ -655,7 +655,7 @@ module.exports = (col)->
     ret.compile_fn = ()->
       ret.gram_list = []
       ret.gram_list.push '''
-        q('lvalue', '#rvalue "." #tok_identifier')          .mx("priority=#{base_priority} ult=field_access ti=macro").strict("$1.priority==#{base_priority}")
+        q('lvalue', '#rvalue "." #tok_identifier')          .mx("priority=#{base_priority} ult=field_access ti=macro tail_space=#tok_identifier.tail_space").strict("$1.priority==#{base_priority}")
         
       '''#'
       return
@@ -672,7 +672,7 @@ module.exports = (col)->
       '''#'
       if ret.hash.allow_bracketless
         ret.gram_list.push '''
-          q('rvalue', '#rvalue #fn_call_arg_list ')        .mx("priority=#{base_priority} ult=fn_call").strict("$1.priority==#{base_priority} $1.tail_space")
+          q('rvalue', '#rvalue #fn_call_arg_list')        .mx("priority=#{base_priority} ult=fn_call").strict("$1.priority==#{base_priority} $1.tail_space")
         '''#'
       ret.gram_list.push ""
       return

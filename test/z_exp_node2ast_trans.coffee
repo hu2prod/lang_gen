@@ -482,6 +482,21 @@ describe 'exp_node2ast_trans section', ()->
             
           ((b)())[0]
           """
+      
+      it 'a.b fn call', ()->
+        assert.equal run("""
+          class A
+            b(arg:int):void->
+          var a:A
+          var c:int
+          a.b c
+          """), """
+          class A
+            b : (arg)->
+              
+          
+          ((a).b)(c)
+          """
       describe 'throws', ()->
         it 'void return but decl int', ()->
           assert.throws ()-> run("""
@@ -795,9 +810,9 @@ describe 'exp_node2ast_trans section', ()->
             a.b
             """)
   
-  describe 'require', ()->
-    it 'class a', ()->
-      assert.equal run("require '1'"), "1"
+  # describe 'require', ()->
+    # it 'require \'1\'', ()->
+      # assert.equal run("require '1'"), "1"
   
   describe 'closure', ()->
     it 'var a; a = ():void->', ()->
