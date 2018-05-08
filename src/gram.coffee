@@ -24,7 +24,7 @@ module.exports = (col)->
         q("const", "#num_const")                          .mx("ult=deep ti=pass")
         q("const", "#str_const")                          .mx("ult=deep ti=pass")
         q("rvalue","#const")                              .mx("priority=#{base_priority} ult=deep  ti=pass")
-        q("stmt",  "#rvalue")                             .mx("ult=deep ti=pass")
+        q("stmt",  "#rvalue")                             .mx("ult=deep ti=pass eol=$1.eol")
         q("rvalue", "#lvalue")                            .mx("priority=#{base_priority} tail_space=$1.tail_space ult=deep  ti=pass")
         
         '''
