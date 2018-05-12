@@ -1,6 +1,7 @@
 Type = require 'type'
 ast = require 'ast4gen'
 
+
 class Ti_context
   parent    : null
   var_hash  : {}
@@ -197,6 +198,14 @@ class_prepare = (ctx, t)->
         ctx_nest = ctx.mk_nest()
         ctx_nest.var_hash["this"] = new Type t.name
         walk t.scope, ctx_nest
+        t.type
+      
+      when "Struct_init"
+        field_hash = {}
+        for k,v of t.hash
+          field_hash[k] = walk v, opt
+        t.type = new Type "struct"
+        t.type.field_hash = field_hash
         t.type
       else
         ### !pragma coverage-skip-block ###

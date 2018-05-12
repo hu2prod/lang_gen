@@ -78,6 +78,14 @@ seek_token_list = (name, t)->
   for v in t.value_array
     list.push v if v.mx_hash.hash_key == name
   list
+seek_token_list_deep = (name, t)->
+  list = []
+  for v in t.value_array
+    if v.mx_hash.hash_key == name
+      list.push v
+    else
+      list.append seek_token_list_deep name, v
+  list
 gen = null
 seek_and_set_line_pos = (ret, root)->
   
@@ -123,6 +131,12 @@ fix_iterator = (t)->
   t.mx_hash.ult = 'id'
   t.value_view = t.value
   t
+
+hash_key_to_value = (key)->
+  if key[0] in ["'", '"']
+    eval key
+  else
+    key
 
 @gen = gen = (root, opt={})->
   switch root.mx_hash.ult
@@ -431,6 +445,18 @@ fix_iterator = (t)->
       for loc_ast in loc_ast_list
         loc_scope = gen loc_ast, opt
         ret.list.append loc_scope.list
+      ret
+    
+    when "struct_init"
+      ret = new ast.Struct_init
+      seek_and_set_line_pos ret, root
+      
+      kv_list = seek_token_list_deep 'struct_init_kv', root
+      for kv in kv_list
+        key   = hash_key_to_value kv.value_array[0].value
+        value = gen kv.value_array[2], opt
+        ret.hash[key] = value
+      
       ret
     
     else

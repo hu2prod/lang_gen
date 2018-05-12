@@ -750,6 +750,39 @@ module.exports = (col)->
       
       return
     ret
+  # ###################################################################################################
+  
+  bp = col.autogen 'gram_struct_init', /^gram_struct_init$/, (ret)->
+    ret.hash.bracketless_inline = false
+    ret.hash.bracketless_indent = false
+    ret.hash.bracket_expr_as_key = false
+    ret.hash.trailing_comma = false
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      ret.gram_list.push '''
+        q('struct_init_kv', '#tok_identifier ":" #rvalue').mx('eol=#rvalue.eol')
+        q('struct_init_kv', '#tok_string_sq ":" #rvalue') .mx('eol=#rvalue.eol')
+        q('struct_init_kv', '#tok_string_dq ":" #rvalue') .mx('eol=#rvalue.eol')
+        q('struct_init_list', '#struct_init_kv')          .mx('eol=$1.eol struct_init_inline=1')
+        q('struct_init_list', '#struct_init_kv #struct_init_list').strict('#struct_init_kv.eol') .mx('struct_init_inline=0')
+        q('struct_init_list', '#struct_init_kv #eol #struct_init_list')     .mx('struct_init_inline=0')
+        q('struct_init_list', '#struct_init_kv "," #struct_init_list')      .mx('struct_init_inline=#struct_init_list.struct_init_inline')
+        q('struct_init_list', '#struct_init_kv "," #eol #struct_init_list') .mx('struct_init_inline=0')
+        q('struct_init', '"{" #struct_init_list? "}"')
+        q('struct_init', '"{" #indent #struct_init_list? #dedent "}"')
+        q('rvalue', '#struct_init') .mx("priority=#{base_priority} ult=struct_init")
+      '''#'
+      if ret.hash.bracketless_indent
+        ret.gram_list.push '''
+        q('struct_init', '#indent #struct_init_list #dedent')
+        '''#'
+      if ret.hash.bracketless_inline
+        ret.gram_list.push '''
+        q('struct_init', '#struct_init_list').strict('$1.struct_init_inline')
+        '''#'
+        
+      ret.gram_list.push ''
+      return
   
   # todo string (single/double)
   # todo string interpolate

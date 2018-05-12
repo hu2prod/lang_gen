@@ -825,4 +825,91 @@ describe 'exp_node2ast_trans section', ()->
           )
         """
   
+  describe 'struct_init', ()->
+    it 'a:1', ()->
+      assert.equal run("""
+        a:1
+        """), '''
+        {"a": 1}
+        '''
+    it '\'a\':1', ()->
+      assert.equal run("""
+        'a':1
+        """), '''
+        {"a": 1}
+        '''
+    it '"a":1', ()->
+      assert.equal run('''
+        "a":1
+        '''), '''
+        {"a": 1}
+        '''
+    it 'a:1,b:2', ()->
+      assert.equal run('''
+        a:1,b:2
+        '''), '''
+        {"a": 1, "b": 2}
+        '''
+    it 'a:1,b:2,c:3', ()->
+      assert.equal run('''
+        a:1,b:2,c:3
+        '''), '''
+        {"a": 1, "b": 2, "c": 3}
+        '''
+    it 'c = a:1', ()->
+      assert.equal run('''
+        var c : struct{a:int}
+        c = a:1
+        '''), '''
+        (c = {"a": 1})
+        '''
+    it 'c = a:1,b:2', ()->
+      assert.equal run('''
+        var c : struct{a:int,b:int}
+        c = a:1,b:2
+        '''), '''
+        (c = {"a": 1, "b": 2})
+        '''
+    it 'c = a:1,b:2,c:3', ()->
+      assert.equal run('''
+        var c : struct{a:int,b:int,c:int}
+        c = a:1,b:2,c:3
+        '''), '''
+        (c = {"a": 1, "b": 2, "c": 3})
+        '''
+    it 'c =\n a:1', ()->
+      assert.equal run('''
+        var c : struct{a:int}
+        c =
+          a:1
+        '''), '''
+        (c = {"a": 1})
+        '''
+    it 'c =\n a:1\nb:1', ()->
+      assert.equal run('''
+        var c : struct{a:int,b:int}
+        c =
+          a:1
+          b:1
+        '''), '''
+        (c = {"a": 1, "b": 1})
+        '''
+    it 'c =\n a:1,\nb:1', ()->
+      assert.equal run('''
+        var c : struct{a:int,b:int}
+        c =
+          a:1,
+          b:1
+        '''), '''
+        (c = {"a": 1, "b": 1})
+        '''
+    it 'c =\n a:1,b:1', ()->
+      assert.equal run('''
+        var c : struct{a:int,b:int}
+        c =
+          a:1,b:1
+        '''), '''
+        (c = {"a": 1, "b": 1})
+        '''
+  
   
