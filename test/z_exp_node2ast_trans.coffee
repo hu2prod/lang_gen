@@ -856,6 +856,32 @@ describe 'exp_node2ast_trans section', ()->
         '''), '''
         {"a": 1, "b": 2, "c": 3}
         '''
+    
+    it '{}', ()->
+      assert.equal run('''
+        {}
+        '''), '''
+        {}
+        '''
+    it '{a:1}', ()->
+      assert.equal run('''
+        {a:1}
+        '''), '''
+        {"a": 1}
+        '''
+    it '{a:1,b:2}', ()->
+      assert.equal run('''
+        {a:1,b:2}
+        '''), '''
+        {"a": 1, "b": 2}
+        '''
+    it '{a:1,b:2,c:3}', ()->
+      assert.equal run('''
+        {a:1,b:2,c:3}
+        '''), '''
+        {"a": 1, "b": 2, "c": 3}
+        '''
+    
     it 'c = a:1', ()->
       assert.equal run('''
         var c : struct{a:int}
@@ -877,6 +903,47 @@ describe 'exp_node2ast_trans section', ()->
         '''), '''
         (c = {"a": 1, "b": 2, "c": 3})
         '''
+    
+    it 'var c : struct{}', ()->
+      assert.equal run('''
+        var c : struct{}
+        '''), ''
+    
+    it 'var c : struct{} c = {}', ()->
+      assert.equal run('''
+        var c : struct{}
+        c = {}
+        '''), '''
+        (c = {})
+        '''
+    it 'var c : struct{a:int} c = {}', ()->
+      assert.throws ()->
+        run '''
+          var c : struct{a:int}
+          c = {}
+          '''
+    it 'c = {a:1}', ()->
+      assert.equal run('''
+        var c : struct{a:int}
+        c = {a:1}
+        '''), '''
+        (c = {"a": 1})
+        '''
+    it 'c = {a:1,b:2}', ()->
+      assert.equal run('''
+        var c : struct{a:int,b:int}
+        c = {a:1,b:2}
+        '''), '''
+        (c = {"a": 1, "b": 2})
+        '''
+    it 'c = {a:1,b:2,c:3}', ()->
+      assert.equal run('''
+        var c : struct{a:int,b:int,c:int}
+        c = {a:1,b:2,c:3}
+        '''), '''
+        (c = {"a": 1, "b": 2, "c": 3})
+        '''
+    
     it 'c =\n a:1', ()->
       assert.equal run('''
         var c : struct{a:int}
@@ -910,6 +977,22 @@ describe 'exp_node2ast_trans section', ()->
           a:1,b:1
         '''), '''
         (c = {"a": 1, "b": 1})
+        '''
+    
+    it 'c a:1', ()->
+      assert.equal run('''
+        var c : function<void,struct{a:int}>
+        c a:1
+        '''), '''
+        (c)({"a": 1})
+        '''
+    
+    it 'c a:1,b:1', ()->
+      assert.equal run('''
+        var c : function<void,struct{a:int,b:int}>
+        c a:1,b:1
+        '''), '''
+        (c)({"a": 1, "b": 1})
         '''
   
   

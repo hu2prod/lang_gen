@@ -556,7 +556,7 @@ module.exports = (col)->
           q('type_field_kv', '#tok_identifier ":" #type')
           q('type_field_kv_list', '#type_field_kv')
           q('type_field_kv_list', '#type_field_kv "," #type_field_kv_list')
-          q('type_field', '"{" #type_field_kv_list "}"')
+          q('type_field', '"{" #type_field_kv_list? "}"')
         '''#'
       str = "q('type', '#tok_identifier#{aux_nest}#{aux_field}')"
       ret.gram_list.push """
@@ -666,8 +666,8 @@ module.exports = (col)->
     ret.compile_fn = ()->
       ret.gram_list = []
       ret.gram_list.push '''
-        q('fn_call_arg_list', '#rvalue')
-        q('fn_call_arg_list', '#rvalue "," #fn_call_arg_list')
+        q('fn_call_arg_list', '#rvalue')                        .mx('bracketless_hash=$1.bracketless_hash')
+        q('fn_call_arg_list', '#rvalue "," #fn_call_arg_list')  .mx('bracketless_hash=$1.bracketless_hash') .strict('!$1.bracketless_hash||!$3.bracketless_hash')
         q('rvalue', '#rvalue "(" #fn_call_arg_list? ")"')     .mx("priority=#{base_priority} ult=fn_call").strict("$1.priority==#{base_priority}")
       '''#'
       if ret.hash.allow_bracketless
@@ -770,15 +770,15 @@ module.exports = (col)->
         q('struct_init_list', '#struct_init_kv "," #eol #struct_init_list') .mx('struct_init_inline=0')
         q('struct_init', '"{" #struct_init_list? "}"')
         q('struct_init', '"{" #indent #struct_init_list? #dedent "}"')
-        q('rvalue', '#struct_init') .mx("priority=#{base_priority} ult=struct_init")
+        q('rvalue', '#struct_init') .mx("priority=#{base_priority} ult=struct_init bracketless_hash=$1.bracketless_hash")
       '''#'
       if ret.hash.bracketless_indent
         ret.gram_list.push '''
-        q('struct_init', '#indent #struct_init_list #dedent')
+        q('struct_init', '#indent #struct_init_list #dedent').mx('bracketless_hash=1')
         '''#'
       if ret.hash.bracketless_inline
         ret.gram_list.push '''
-        q('struct_init', '#struct_init_list').strict('$1.struct_init_inline')
+        q('struct_init', '#struct_init_list').mx('bracketless_hash=1').strict('$1.struct_init_inline')
         '''#'
         
       ret.gram_list.push ''
