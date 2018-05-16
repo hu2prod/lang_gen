@@ -329,7 +329,7 @@ module.exports = (col)->
           assoc_aux = " left_assoc=1"
         
         q  = """q("bin_op", #{str_op})"""#"
-        mx = """.mx("priority=#{priority} tail_space=$1.tail_space #{assoc_aux}")"""#"
+        mx = """.mx("priority=#{priority} tail_space=$1.tail_space #{assoc_aux} eol=$1.eol")"""#"
         ret.gram_list.push "#{q.ljust 50}#{mx.ljust 50}#"
       
       if !ret.hash.space_fix
