@@ -703,29 +703,55 @@ module.exports = (col)->
     ret.hash.fat_arrow = true # LATER
     ret.hash.closure = false
     ret.hash.require_list = ['gram_type', 'gram_fn_call']
+    ret.hash.ret_type = true
+    ret.hash.no_ret_type = false
+    ret.hash.arg_type = true
+    ret.hash.no_arg_type = false
     
     ret.compile_fn = ()->
+      if !ret.hash.ret_type and !ret.hash.no_ret_type
+        throw new Error "!ret_type and !no_ret_type"
+      if !ret.hash.arg_type and !ret.hash.no_arg_type
+        throw new Error "!arg_type and !no_arg_type"
+      
       ret.gram_list = []
       # TODO default value
       # q('rvalue', '( #fn_decl_arg_list? ) ":" #type ->').mx("ult=closure")
-      ret.gram_list.push '''
-        q('fn_decl_arg', '#tok_identifier ":" #type')
+      ret_type_list = []
+      ret_type_list.push '":" #type' if ret.hash.ret_type
+      ret_type_list.push '' if ret.hash.no_ret_type
+      
+      if ret.hash.arg_type
+        ret.gram_list.push """
+          q('fn_decl_arg', '#tok_identifier ":" #type')
+          """
+      if ret.hash.no_arg_type
+        ret.gram_list.push """
+          q('fn_decl_arg', '#tok_identifier')
+          """
+      
+      ret.gram_list.push """
         q('fn_decl_arg_list', '#fn_decl_arg')
         q('fn_decl_arg_list', '#fn_decl_arg "," #fn_decl_arg_list')
-        q('stmt', '#tok_identifier "(" #fn_decl_arg_list? ")" ":" #type "->"').mx('ult=fn_decl')
-        q('stmt', '#tok_identifier "(" #fn_decl_arg_list? ")" ":" #type "->" #block').mx('ult=fn_decl eol=1')
-        q('stmt', '#tok_identifier "(" #fn_decl_arg_list? ")" ":" #type "->" #rvalue').mx('ult=fn_decl')
         
         q('stmt', '#return #rvalue?')                     .mx('ult=return ti=return')
         
-      '''#'
+        """
+      for aux_ret_type in ret_type_list
+        ret.gram_list.push """
+          q('stmt', '#tok_identifier "(" #fn_decl_arg_list? ")" #{aux_ret_type} "->"').mx('ult=fn_decl')
+          q('stmt', '#tok_identifier "(" #fn_decl_arg_list? ")" #{aux_ret_type} "->" #block').mx('ult=fn_decl eol=1')
+          q('stmt', '#tok_identifier "(" #fn_decl_arg_list? ")" #{aux_ret_type} "->" #rvalue').mx('ult=fn_decl')
+          
+        """#"
       if ret.hash.closure
-        ret.gram_list.push '''
-        q('rvalue', '"(" #fn_decl_arg_list? ")" ":" #type "=>"').mx("priority=#{base_priority} ult=cl_decl")
-        q('rvalue', '"(" #fn_decl_arg_list? ")" ":" #type "=>" #block').mx("priority=#{base_priority} ult=cl_decl eol=1")
-        q('rvalue', '"(" #fn_decl_arg_list? ")" ":" #type "=>" #rvalue').mx("priority=#{base_priority} ult=cl_decl")
-        
-      '''#'
+        for aux_ret_type in ret_type_list
+          ret.gram_list.push """
+            q('rvalue', '"(" #fn_decl_arg_list? ")" #{aux_ret_type} "=>"').mx("priority=\#{base_priority} ult=cl_decl")
+            q('rvalue', '"(" #fn_decl_arg_list? ")" #{aux_ret_type} "=>" #block').mx("priority=\#{base_priority} ult=cl_decl eol=1")
+            q('rvalue', '"(" #fn_decl_arg_list? ")" #{aux_ret_type} "=>" #rvalue').mx("priority=\#{base_priority} ult=cl_decl")
+            
+          """#"
       
       return
     ret

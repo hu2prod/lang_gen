@@ -378,16 +378,24 @@ hash_key_to_value = (key)->
       if fn_decl_arg_list = seek_token 'fn_decl_arg_list', root
         walk = (t)->
           arg = t.value_array[0]
+          if arg.value_array[2]
+            type = new Type arg.value_array[2].value_view.replace(/\s+/g, '')
+          else
+            type = new Type "void"
           arg_list.push {
             name : arg.value_array[0].value
-            type : new Type arg.value_array[2].value_view.replace(/\s+/g, '')
+            type
           }
           
           if t.value_array.length == 3
             walk t.value_array[2]
           return
         walk fn_decl_arg_list
-      ret.type.nest_list.push new Type seek_token('type', root).value_view.replace(/\s+/g, '')
+      if type = seek_token('type', root)
+        ret.type.nest_list.push new Type type.value_view.replace(/\s+/g, '')
+      else
+        ret.type.nest_list.push new Type "void"
+      
       for arg in arg_list
         ret.type.nest_list.push arg.type
         ret.arg_name_list.push arg.name

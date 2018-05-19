@@ -831,7 +831,7 @@ describe 'exp_node2ast_trans section', ()->
       # assert.equal run("require '1'"), "1"
   
   describe 'closure', ()->
-    it 'var a; a = ():void->', ()->
+    it 'var a; a = ():void=>', ()->
       assert.equal run("""
         var a : function<void>
         a = ():void=>
