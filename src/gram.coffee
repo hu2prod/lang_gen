@@ -668,6 +668,16 @@ module.exports = (col)->
         
       '''#'
       return
+  
+  bp = col.autogen 'gram_this_at', (ret)->
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      ret.gram_list.push '''
+        q('rvalue', '"@"')                          .mx("priority=#{base_priority} ult=at tail_space=$1.tail_space")
+        q('lvalue', '"@" #tok_identifier')          .mx("priority=#{base_priority} ult=at_field_access ti=macro tail_space=#tok_identifier.tail_space")
+        
+      '''#'
+      return
     
   
   bp = col.autogen 'gram_fn_call', (ret)->

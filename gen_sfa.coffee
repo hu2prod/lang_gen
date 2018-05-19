@@ -31,6 +31,7 @@ main.inject ()->
   col.gen 'tok_inline_comment'
   col.gen 'tok_multiline_comment'
   col.gen 'tok_bracket_square'
+  col.gen 'tok_at'
 
 main.hash.dedent_fix    = true
 main.hash.remove_end_eol= true
@@ -59,6 +60,7 @@ main.inject ()->
   col.gen 'gram_str_family'
   col.gen 'gram_var_decl'
   col.gen 'gram_field_access'
+  col.gen 'gram_this_at'
   gram_struct_init = col.gen 'gram_struct_init'
   gram_struct_init.hash.bracketless_indent = true
   gram_struct_init.hash.bracketless_inline = true
