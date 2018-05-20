@@ -207,6 +207,23 @@ class_prepare = (ctx, t)->
         t.type = new Type "struct"
         t.type.field_hash = field_hash
         t.type
+      
+      when "Array_init"
+        type_list = []
+        for v in t.list
+          type_list.push walk v, opt
+        for v,k in type_list
+          if !v.cmp type_list[0]
+            throw new Error "not all type in array_init are equal. [#{k}] #{v} != [0] #{type_list[0]}"
+        
+        t.type = new Type "array"
+        if type_list[0]
+          t.type.nest_list.push type_list[0]
+        else
+          t.type.nest_list.push new Type "void"
+        
+        t.type
+      
       else
         ### !pragma coverage-skip-block ###
         p t

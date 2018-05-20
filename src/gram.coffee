@@ -810,8 +810,8 @@ module.exports = (col)->
         q('struct_init_kv', '#tok_string_dq ":" #rvalue') .mx('eol=#rvalue.eol')
         q('struct_init_list', '#struct_init_kv')          .mx('eol=$1.eol struct_init_inline=1')
         q('struct_init_list', '#struct_init_kv #struct_init_list').strict('#struct_init_kv.eol') .mx('struct_init_inline=0')
-        q('struct_init_list', '#struct_init_kv #eol #struct_init_list')     .mx('struct_init_inline=0')
-        q('struct_init_list', '#struct_init_kv "," #struct_init_list')      .mx('struct_init_inline=#struct_init_list.struct_init_inline')
+        q('struct_init_list', '#struct_init_kv #eol     #struct_init_list') .mx('struct_init_inline=0')
+        q('struct_init_list', '#struct_init_kv ","      #struct_init_list') .mx('struct_init_inline=#struct_init_list.struct_init_inline')
         q('struct_init_list', '#struct_init_kv "," #eol #struct_init_list') .mx('struct_init_inline=0')
         q('struct_init', '"{" #struct_init_list? "}"')
         q('struct_init', '"{" #indent #struct_init_list? #dedent "}"')
@@ -827,6 +827,22 @@ module.exports = (col)->
         '''#'
         
       ret.gram_list.push ''
+      return
+  
+  bp = col.autogen 'gram_array_init', /^gram_array_init$/, (ret)->
+    ret.hash.trailing_comma = false
+    ret.compile_fn = ()->
+      ret.gram_list = []
+      ret.gram_list.push '''
+        q('array_init_list', '#rvalue')
+        q('array_init_list', '#rvalue #eol     #array_init_list')
+        q('array_init_list', '#rvalue ","      #array_init_list')
+        q('array_init_list', '#rvalue "," #eol #array_init_list')
+        q('array_init', '"[" #array_init_list? "]"')
+        q('array_init', '"[" #indent #array_init_list? #dedent "]"')
+        q('rvalue', '#array_init') .mx("priority=#{base_priority} ult=array_init")
+        
+      '''#'
       return
   
   # todo string (single/double)

@@ -467,6 +467,16 @@ hash_key_to_value = (key)->
       
       ret
     
+    when "array_init"
+      ret = new ast.Array_init
+      seek_and_set_line_pos ret, root
+      
+      value_list = seek_token_list_deep 'rvalue', root
+      for value in value_list
+        ret.list.push gen value, opt
+      
+      ret
+    
     when "at"
       ret = new ast.Var
       seek_and_set_line_pos ret, root
