@@ -277,6 +277,7 @@ module.exports = (col)->
       '='  : 12
     
     ret.hash.l_assoc_hash =
+      '=' : true
       '**' : true
     
     ret.hash.r_assoc_hash = {}

@@ -327,6 +327,27 @@ describe 'exp_node2ast_trans section', ()->
         """), """
         (this).a
         """
+    it '@a.b', ()->
+      assert.equal run("""
+        var this:struct{a:struct{b:int}}
+        @a.b
+        """), """
+        ((this).a).b
+        """
+    it '@.a.b', ()->
+      assert.equal run("""
+        var this:struct{a:struct{b:int}}
+        @.a.b
+        """), """
+        ((this).a).b
+        """
+    it '@a.b.c', ()->
+      assert.equal run("""
+        var this:struct{a:struct{b:struct{c:int}}}
+        @a.b.c
+        """), """
+        (((this).a).b).c
+        """
   
   describe 'loop', ()->
     it 'loop break', ()->
