@@ -906,6 +906,18 @@ describe 'exp_node2ast_trans section', ()->
         '''), '''
         {"a": 1}
         '''
+    it '{return:1}', ()->
+      assert.equal run('''
+        {return:1}
+        '''), '''
+        {"return": 1}
+        '''
+    it '{class:1}', ()->
+      assert.equal run('''
+        {class:1}
+        '''), '''
+        {"class": 1}
+        '''
     it '{a:1,b:2}', ()->
       assert.equal run('''
         {a:1,b:2}

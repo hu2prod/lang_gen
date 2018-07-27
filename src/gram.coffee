@@ -803,6 +803,8 @@ module.exports = (col)->
     ret.hash.bracketless_indent = false
     ret.hash.bracket_expr_as_key = false
     ret.hash.trailing_comma = false
+    ret.hash.reserved_words = false
+    
     ret.compile_fn = ()->
       ret.gram_list = []
       ret.gram_list.push '''
@@ -827,6 +829,12 @@ module.exports = (col)->
         q('struct_init', '#struct_init_list').mx('bracketless_hash=1').strict('$1.struct_init_inline')
         '''#'
         
+      if ret.hash.reserved_words
+        ret.gram_list.push '''
+        q('struct_init_kv', '#return ":" #rvalue').mx('eol=#rvalue.eol')
+        q('struct_init_kv', '#_ ":" #rvalue').mx('eol=#rvalue.eol').strict('$1.remap')
+        '''#'
+      
       ret.gram_list.push ''
       return
   
