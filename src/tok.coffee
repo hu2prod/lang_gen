@@ -176,7 +176,7 @@ module.exports = (col)->
         list = []
         for v in ret.hash.suffix_list
           list.push RegExp.escape v
-        aux_suffix = "(#{list.join '|'})"
+        aux_suffix = "(#{list.join '|'})?"
       aux_sign = ""
       if ret.hash.sign
         aux_sign = "[-+]?"
