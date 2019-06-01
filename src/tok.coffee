@@ -138,6 +138,7 @@ module.exports = (col)->
     ret
   bp = col.autogen 'tok_id', /^tok_id$/, (ret)->
     ret.hash.fix_return = true
+    ret.hash.reserved_word_list = ['var', 'class', 'in', 'if', 'else', 'elseif', 'elsif', 'elif', 'switch', 'when', 'and', 'or', 'xor', 'not']
     ret.compile_fn = ()->
       if ret.hash.fix_return
         ret.parser_list = [
@@ -145,7 +146,7 @@ module.exports = (col)->
           new Token_parser 'tok_identifier', /^[_\$a-z][_\$a-z0-9]*/i, (_this, ret_proxy, v)->
             if v.value == 'return'
               v.mx_hash.hash_key = 'return'
-            if v.value in ['var', 'class', 'in', 'if', 'else', 'elseif', 'elsif', 'elif', 'switch', 'when', 'and', 'or', 'xor', 'not']
+            if v.value in #{JSON.stringify ret.hash.reserved_word_list}
               v.mx_hash.hash_key = '_'
               v.mx_hash.remap = '1'
             ret_proxy.push [v]
