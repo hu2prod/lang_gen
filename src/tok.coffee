@@ -168,25 +168,32 @@ module.exports = (col)->
     ret.hash.oct = true
     ret.hash.hex = true
     ret.hash.bin = true
+    ret.hash.suffix_list = []
     
     ret.compile_fn = ()->
+      aux_suffix = ""
+      if ret.hash.suffix_list.length
+        list = []
+        for v in ret.hash.suffix_list
+          list.push RegExp.escape v
+        aux_suffix = "(#{list.join '|'})"
       aux_sign = ""
       if ret.hash.sign
         aux_sign = "[-+]?"
       ret.parser_list = []
       if ret.hash.dec
         if ret.hash.oct_unsafe
-          ret.parser_list.push "new Token_parser 'tok_decimal_literal', /^#{aux_sign}(0|[1-9][0-9]*)/"
+          ret.parser_list.push "new Token_parser 'tok_decimal_literal', /^#{aux_sign}(0|[1-9][0-9]*)#{aux_suffix}/"
         else
-          ret.parser_list.push "new Token_parser 'tok_decimal_literal', /^#{aux_sign}[0-9]+/"
+          ret.parser_list.push "new Token_parser 'tok_decimal_literal', /^#{aux_sign}[0-9]+#{aux_suffix}/"
       if ret.hash.oct
-        ret.parser_list.push "new Token_parser 'tok_octal_literal', /^0o[0-7]+/i"
+        ret.parser_list.push "new Token_parser 'tok_octal_literal', /^0o[0-7]+#{aux_suffix}/i"
       if ret.hash.oct_unsafe
-        ret.parser_list.push "new Token_parser 'tok_octal_literal', /^0[0-7]+/"
+        ret.parser_list.push "new Token_parser 'tok_octal_literal', /^0[0-7]+#{aux_suffix}/"
       if ret.hash.hex
-        ret.parser_list.push "new Token_parser 'tok_hexadecimal_literal', /^0x[0-9a-f]+/i"
+        ret.parser_list.push "new Token_parser 'tok_hexadecimal_literal', /^0x[0-9a-f]+#{aux_suffix}/i"
       if ret.hash.bin
-        ret.parser_list.push "new Token_parser 'tok_binary_literal', /^0b[01]+/i"
+        ret.parser_list.push "new Token_parser 'tok_binary_literal', /^0b[01]+#{aux_suffix}/i"
       return
     ret
   
