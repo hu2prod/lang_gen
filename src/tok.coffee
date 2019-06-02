@@ -382,10 +382,21 @@ module.exports = (col)->
   
   bp = col.autogen 'tok_inline_comment', /^tok_inline_comment$/, (ret)->
     ret.hash.delimiter = "#"
+    ret.hash.drop = false
     ret.compile_fn = ()->
-      ret.parser_list = [
-        "new Token_parser 'tok_inline_comment', /^#{RegExp.escape ret.hash.delimiter}.*/"
-      ]
+      if ret.hash.drop
+        ret.spec_list = [
+          """
+          tokenizer.parser_list.push new Token_parser 'tok_inline_comment', /^#{RegExp.escape ret.hash.delimiter}.*/, (_this, ret_value, q)->
+            _this.text = _this.text.substr q.value
+            _this.text = _this.text.replace /^\\s+/, ''
+            return
+          """
+        ]
+      else
+        ret.parser_list = [
+          "new Token_parser 'tok_inline_comment', /^#{RegExp.escape ret.hash.delimiter}.*/"
+        ]
       return
     ret
   
@@ -393,10 +404,21 @@ module.exports = (col)->
     ret.hash.a = "###"
     ret.hash.b = "###"
     ret.hash.body = "[^#][^]*?"
+    ret.hash.drop = false
     ret.compile_fn = ()->
-      ret.parser_list = [
-        "new Token_parser 'tok_multiline_comment', /^#{RegExp.escape ret.hash.a}#{ret.hash.body}#{RegExp.escape ret.hash.b}/"
-      ]
+      if ret.hash.drop
+        ret.spec_list = [
+          """
+          tokenizer.parser_list.push new Token_parser 'tok_multiline_comment', /^#{RegExp.escape ret.hash.a}#{ret.hash.body}#{RegExp.escape ret.hash.b}/, (_this, ret_value, q)->
+            _this.text = _this.text.substr q.value
+            _this.text = _this.text.replace /^\\s+/, ''
+            return
+          """
+        ]
+      else
+        ret.parser_list = [
+          "new Token_parser 'tok_multiline_comment', /^#{RegExp.escape ret.hash.a}#{ret.hash.body}#{RegExp.escape ret.hash.b}/"
+        ]
       return
     
     ret
